@@ -1,0 +1,430 @@
+// ============================================
+// AI Service Proto Definitions
+// Defines gRPC services for AI/LLM operations
+// Based on sdk/llm/ai-sdk.ts and server/trpc/routers/query.ts
+// ============================================
+
+syntax = "proto3";
+
+package ai;
+
+// ============================================
+// SHARED TYPES
+// ============================================
+
+message Empty {}
+
+message StringValue {
+  string value = 1;
+}
+
+message IntValue {
+  int32 value = 1;
+}
+
+message BoolValue {
+  bool value = 1;
+}
+
+// ============================================
+// SEARCH & RAG TYPES
+// ============================================
+
+message SearchResult {
+  string id = 1;
+  string content = 2;
+  double score = 3;
+  string document_id = 4;
+  string document_title = 5;
+  map<string, string> metadata = 6;
+}
+
+message SearchRequest {
+  string query = 1;
+  string tenant_id = 2;
+  string conversation_id = 3;
+  int32 top_k = 4;
+  bool include_sources = 5;
+}
+
+message SearchResponse {
+  string answer = 1;
+  repeated Source sources = 2;
+  string conversation_id = 3;
+  int32 tokens_used = 4;
+}
+
+message Source {
+  string document_title = 1;
+  string chunk_content = 2;
+  double score = 3;
+}
+
+message SearchOnlyRequest {
+  string query = 1;
+  string tenant_id = 2;
+  int32 top_k = 3;
+}
+
+message SearchOnlyResponse {
+  repeated SearchResult results = 1;
+}
+
+// ============================================
+// TEXT GENERATION TYPES
+// ============================================
+
+message GenerateTextRequest {
+  string prompt = 1;
+  string system_prompt = 2;
+  float temperature = 3;
+  int32 max_output_tokens = 4;
+  string provider = 5;
+  string model = 6;
+}
+
+message GenerateTextResponse {
+  string content = 1;
+  Usage usage = 2;
+  string finish_reason = 3;
+}
+
+message StreamTextRequest {
+  string prompt = 1;
+  string system_prompt = 2;
+  float temperature = 3;
+  int32 max_output_tokens = 4;
+  string provider = 5;
+  string model = 6;
+}
+
+message StreamTextChunk {
+  string content = 1;
+  string chunk_type = 2;
+  ToolCall tool_call = 3;
+  Usage usage = 4;
+  string finish_reason = 5;
+}
+
+message ToolCall {
+  string id = 1;
+  string tool_name = 2;
+  string args = 3;
+}
+
+message Usage {
+  int32 prompt_tokens = 1;
+  int32 completion_tokens = 2;
+  int32 total_tokens = 3;
+}
+
+// ============================================
+// STRUCTURED OUTPUT TYPES
+// ============================================
+
+message GenerateStructuredRequest {
+  string prompt = 1;
+  string schema = 2;  // JSON schema as string
+  string system_prompt = 3;
+  float temperature = 4;
+  string provider = 5;
+  string model = 6;
+}
+
+message GenerateStructuredResponse {
+  string object = 1;  // JSON string of generated object
+  string finish_reason = 2;
+  Usage usage = 3;
+}
+
+// ============================================
+// DOCUMENT TYPES
+// ============================================
+
+message Document {
+  string id = 1;
+  string tenant_id = 2;
+  string title = 3;
+  string filename = 4;
+  string content_type = 5;
+  int32 file_size = 6;
+  string content = 7;
+  string file_url = 8;
+  string status = 9;
+  int32 chunk_count = 10;
+  string processed_at = 11;
+  string error_message = 12;
+  string created_at = 13;
+  string updated_at = 14;
+}
+
+message DocumentListRequest {
+  string tenant_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string search = 4;
+  string status = 5;
+}
+
+message DocumentListResponse {
+  repeated Document items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  bool has_more = 5;
+}
+
+message CreateDocumentRequest {
+  string tenant_id = 1;
+  string title = 2;
+  string content = 3;
+}
+
+message CreateDocumentResponse {
+  string id = 1;
+  string title = 2;
+  string status = 3;
+}
+
+message UpdateDocumentRequest {
+  string id = 1;
+  string tenant_id = 2;
+  string title = 3;
+  string status = 4;
+}
+
+message DeleteDocumentRequest {
+  string id = 1;
+  string tenant_id = 2;
+}
+
+message DeleteDocumentResponse {
+  bool success = 1;
+  string id = 2;
+}
+
+message DocumentStatsRequest {
+  string tenant_id = 1;
+}
+
+message DocumentStatsResponse {
+  int32 total = 1;
+  map<string, int32> by_status = 2;
+  int32 total_chunks = 3;
+}
+
+// ============================================
+// CONVERSATION TYPES
+// ============================================
+
+message Conversation {
+  string id = 1;
+  string tenant_id = 2;
+  string title = 3;
+  string user_id = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}
+
+message Message {
+  string id = 1;
+  string conversation_id = 2;
+  string role = 3;
+  string content = 4;
+  string sources = 5;
+  int32 tokens_used = 6;
+  string created_at = 7;
+}
+
+message ConversationListRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message ConversationListResponse {
+  repeated Conversation items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  bool has_more = 5;
+}
+
+message MessageListRequest {
+  string conversation_id = 1;
+  string tenant_id = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message MessageListResponse {
+  repeated Message items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  bool has_more = 5;
+}
+
+message CreateConversationRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  string title = 3;
+}
+
+message CreateConversationResponse {
+  string id = 1;
+  string title = 2;
+  string created_at = 3;
+}
+
+message DeleteConversationRequest {
+  string id = 1;
+  string tenant_id = 2;
+  string user_id = 3;
+}
+
+message DeleteConversationResponse {
+  bool success = 1;
+}
+
+// ============================================
+// MODEL & INFERENCE TYPES
+// ============================================
+
+message ModelInfo {
+  string id = 1;
+  string name = 2;
+  string provider = 3;
+  string model_id = 4;
+  ModelCapabilities capabilities = 5;
+  string description = 6;
+  bool deprecated = 7;
+}
+
+message ModelCapabilities {
+  bool supports_image_input = 1;
+  bool supports_object_generation = 2;
+  bool supports_tool_usage = 3;
+  bool supports_tool_streaming = 4;
+  bool supports_vision = 5;
+  bool supports_streaming = 6;
+  bool supports_reasoning = 7;
+  int32 max_context_tokens = 8;
+  int32 max_output_tokens = 9;
+}
+
+message InferenceRequest {
+  string model = 1;
+  repeated MessageInput messages = 2;
+  repeated ToolDefinition tools = 3;
+  string tool_choice = 4;
+  float temperature = 5;
+  int32 max_tokens = 6;
+  float top_p = 7;
+  repeated string stop_sequences = 8;
+}
+
+message MessageInput {
+  string role = 1;
+  string content = 2;
+  repeated ToolCallInput tool_calls = 3;
+}
+
+message ToolDefinition {
+  string type = 1;
+  string name = 2;
+  string description = 3;
+  string parameters = 4;  // JSON schema
+}
+
+message ToolCallInput {
+  string id = 1;
+  string name = 2;
+  string arguments = 3;  // JSON
+}
+
+message InferenceResponse {
+  string content = 1;
+  string finish_reason = 2;
+  Usage usage = 3;
+  string model = 4;
+  repeated ToolCallResult tool_calls = 5;
+  map<string, string> metadata = 6;
+}
+
+message ToolCallResult {
+  string id = 1;
+  string tool_name = 2;
+  string result = 3;
+}
+
+// ============================================
+// BATCH INFERENCE TYPES
+// ============================================
+
+message BatchInferenceRequest {
+  string model = 1;
+  repeated InferenceRequest items = 2;
+  int32 batch_size = 3;
+}
+
+message BatchInferenceResponse {
+  repeated InferenceResponse results = 1;
+  int32 total_latency = 2;
+  int32 failed_count = 3;
+}
+
+// ============================================
+// HEALTH CHECK
+// ============================================
+
+message HealthCheckRequest {
+  string tenant_id = 1;
+}
+
+message HealthCheckResponse {
+  bool healthy = 1;
+  string status = 2;
+  int64 timestamp = 3;
+}
+
+// ============================================
+// AI SERVICE
+// ============================================
+
+service AIService {
+  // RAG Operations
+  rpc Search(SearchRequest) returns (SearchResponse);
+  rpc SearchOnly(SearchOnlyRequest) returns (SearchOnlyResponse);
+  
+  // Text Generation
+  rpc GenerateText(GenerateTextRequest) returns (GenerateTextResponse);
+  rpc StreamText(StreamTextRequest) returns (stream StreamTextChunk);
+  
+  // Structured Output
+  rpc GenerateStructured(GenerateStructuredRequest) returns (GenerateStructuredResponse);
+  
+  // Document Operations
+  rpc ListDocuments(DocumentListRequest) returns (DocumentListResponse);
+  rpc GetDocument(Document) returns (Document);
+  rpc CreateDocument(CreateDocumentRequest) returns (CreateDocumentResponse);
+  rpc UpdateDocument(UpdateDocumentRequest) returns (Document);
+  rpc DeleteDocument(DeleteDocumentRequest) returns (DeleteDocumentResponse);
+  rpc GetDocumentStats(DocumentStatsRequest) returns (DocumentStatsResponse);
+  
+  // Conversation Operations
+  rpc ListConversations(ConversationListRequest) returns (ConversationListResponse);
+  rpc GetMessages(MessageListRequest) returns (MessageListResponse);
+  rpc CreateConversation(CreateConversationRequest) returns (CreateConversationResponse);
+  rpc DeleteConversation(DeleteConversationRequest) returns (DeleteConversationResponse);
+  
+  // Model Operations
+  rpc GetModelInfo(Empty) returns (stream ModelInfo);
+  rpc Inference(InferenceRequest) returns (InferenceResponse);
+  rpc BatchInference(BatchInferenceRequest) returns (BatchInferenceResponse);
+  
+  // Health Check
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+

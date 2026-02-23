@@ -1,0 +1,670 @@
+// ============================================
+// MS-SQL Proto Definitions
+// Defines protobuf messages for MS SQL database entities
+// Based on sdk/db/prisma/schema.prisma
+// ============================================
+
+syntax = "proto3";
+
+package msql;
+
+// ============================================
+// TENANT & USER MANAGEMENT
+// ============================================
+
+message Tenant {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string plan = 4;
+  bool is_active = 5;
+  string database_url = 6;
+  int32 max_users = 7;
+  int32 max_documents = 8;
+  int32 max_storage_mb = 9;
+  int32 rate_limit_rpm = 10;
+  int32 rate_limit_rph = 11;
+  string created_at = 12;
+  string updated_at = 13;
+}
+
+message User {
+  string id = 1;
+  string email = 2;
+  string password_hash = 3;
+  string name = 4;
+  string role = 5;
+  string avatar_url = 6;
+  bool is_active = 7;
+  string last_login_at = 8;
+  string tenant_id = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+// ============================================
+// AUTHENTICATION
+// ============================================
+
+message Session {
+  string id = 1;
+  string user_id = 2;
+  string tenant_id = 3;
+  string token = 4;
+  string refresh_token = 5;
+  string ip_address = 6;
+  string user_agent = 7;
+  string expires_at = 8;
+  string created_at = 9;
+}
+
+message ApiKey {
+  string id = 1;
+  string tenant_id = 2;
+  string name = 3;
+  string key_hash = 4;
+  string prefix = 5;
+  string permissions = 6;
+  string last_used_at = 7;
+  string expires_at = 8;
+  bool is_active = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+// ============================================
+// DOCUMENTS
+// ============================================
+
+message Document {
+  string id = 1;
+  string tenant_id = 2;
+  string title = 3;
+  string filename = 4;
+  string content_type = 5;
+  int32 file_size = 6;
+  string content = 7;
+  string file_url = 8;
+  string status = 9;
+  int32 chunk_count = 10;
+  string processed_at = 11;
+  string error_message = 12;
+  string created_by = 13;
+  string created_at = 14;
+  string updated_at = 15;
+}
+
+message DocumentChunk {
+  string id = 1;
+  string tenant_id = 2;
+  string document_id = 3;
+  string content = 4;
+  int32 chunk_index = 5;
+  string embedding = 6;
+  string embedding_id = 7;
+  string metadata = 8;
+  string created_at = 9;
+}
+
+// ============================================
+// QUEUE JOBS
+// ============================================
+
+message Job {
+  string id = 1;
+  string tenant_id = 2;
+  string document_id = 3;
+  string type = 4;
+  string status = 5;
+  int32 progress = 6;
+  string result = 7;
+  string error = 8;
+  int32 attempts = 9;
+  int32 max_attempts = 10;
+  string started_at = 11;
+  string completed_at = 12;
+  string created_at = 13;
+  string updated_at = 14;
+}
+
+// ============================================
+// RATE LIMITING
+// ============================================
+
+message RateLimitLog {
+  string id = 1;
+  string api_key_id = 2;
+  string tenant_id = 3;
+  string endpoint = 4;
+  string method = 5;
+  string ip_address = 6;
+  int32 status_code = 7;
+  int32 response_time = 8;
+  string created_at = 9;
+}
+
+// ============================================
+// AUDIT & LOGGING
+// ============================================
+
+message AuditLog {
+  string id = 1;
+  string tenant_id = 2;
+  string user_id = 3;
+  string document_id = 4;
+  string action = 5;
+  string entity_type = 6;
+  string entity_id = 7;
+  string details = 8;
+  string ip_address = 9;
+  string user_agent = 10;
+  string created_at = 11;
+}
+
+// ============================================
+// USAGE METRICS
+// ============================================
+
+message UsageMetric {
+  string id = 1;
+  string tenant_id = 2;
+  string metric_type = 3;
+  int32 value = 4;
+  string period = 5;
+  string period_start = 6;
+  string created_at = 7;
+}
+
+// ============================================
+// CHAT & CONVERSATIONS
+// ============================================
+
+message Conversation {
+  string id = 1;
+  string tenant_id = 2;
+  string title = 3;
+  string user_id = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}
+
+message Message {
+  string id = 1;
+  string conversation_id = 2;
+  string role = 3;
+  string content = 4;
+  string sources = 5;
+  int32 tokens_used = 6;
+  string created_at = 7;
+}
+
+// ============================================
+// REQUEST/RESPONSE MESSAGES
+// ============================================
+
+// Tenant Requests
+message CreateTenantRequest {
+  string name = 1;
+  string slug = 2;
+  string plan = 3;
+}
+
+message GetTenantRequest {
+  string id = 1;
+}
+
+message UpdateTenantRequest {
+  string id = 1;
+  string name = 2;
+  string plan = 3;
+  bool is_active = 4;
+  int32 max_users = 5;
+  int32 max_documents = 6;
+  int32 max_storage_mb = 7;
+}
+
+message DeleteTenantRequest {
+  string id = 1;
+}
+
+message ListTenantsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message ListTenantsResponse {
+  repeated Tenant items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  bool has_more = 5;
+}
+
+// User Requests
+message CreateUserRequest {
+  string email = 1;
+  string password_hash = 2;
+  string name = 3;
+  string role = 4;
+  string tenant_id = 5;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message UpdateUserRequest {
+  string id = 1;
+  string name = 2;
+  string role = 3;
+  string avatar_url = 4;
+  bool is_active = 5;
+}
+
+message DeleteUserRequest {
+  string id = 1;
+}
+
+message ListUsersRequest {
+  string tenant_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListUsersResponse {
+  repeated User items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  bool has_more = 5;
+}
+
+// Session Requests
+message CreateSessionRequest {
+  string user_id = 1;
+  string tenant_id = 2;
+  string ip_address = 3;
+  string user_agent = 4;
+  int32 expires_in_seconds = 5;
+}
+
+message GetSessionRequest {
+  string token = 1;
+}
+
+message DeleteSessionRequest {
+  string token = 1;
+}
+
+message RefreshSessionRequest {
+  string refresh_token = 1;
+}
+
+message SessionResponse {
+  string token = 1;
+  string refresh_token = 2;
+  string expires_at = 3;
+}
+
+// API Key Requests
+message CreateApiKeyRequest {
+  string tenant_id = 1;
+  string name = 2;
+  string permissions = 3;
+  int32 expires_in_days = 4;
+}
+
+message GetApiKeyRequest {
+  string id = 1;
+}
+
+message ListApiKeysRequest {
+  string tenant_id = 1;
+}
+
+message RevokeApiKeyRequest {
+  string id = 1;
+}
+
+message ApiKeyResponse {
+  string id = 1;
+  string name = 2;
+  string key = 3;  // Only returned once on creation
+  string prefix = 4;
+  string permissions = 5;
+  string expires_at = 6;
+  bool is_active = 7;
+  string created_at = 8;
+}
+
+// Document Requests
+message CreateDocumentRequest {
+  string tenant_id = 1;
+  string title = 2;
+  string filename = 3;
+  string content_type = 4;
+  int32 file_size = 5;
+  string content = 6;
+  string file_url = 7;
+  string created_by = 8;
+}
+
+message GetDocumentRequest {
+  string id = 1;
+  string tenant_id = 2;
+}
+
+message UpdateDocumentRequest {
+  string id = 1;
+  string tenant_id = 2;
+  string title = 3;
+  string status = 4;
+}
+
+message DeleteDocumentRequest {
+  string id = 1;
+  string tenant_id = 2;
+}
+
+message ListDocumentsRequest {
+  string tenant_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string search = 4;
+  string status = 5;
+}
+
+message ListDocumentsResponse {
+  repeated Document items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  bool has_more = 5;
+}
+
+message GetDocumentStatsRequest {
+  string tenant_id = 1;
+}
+
+message DocumentStatsResponse {
+  int32 total = 1;
+  int32 pending = 2;
+  int32 processing = 3;
+  int32 completed = 4;
+  int32 failed = 5;
+  int32 total_chunks = 6;
+}
+
+// Document Chunk Requests
+message CreateDocumentChunkRequest {
+  string tenant_id = 1;
+  string document_id = 2;
+  string content = 3;
+  int32 chunk_index = 4;
+  string embedding = 5;
+  string embedding_id = 6;
+  string metadata = 7;
+}
+
+message GetDocumentChunksRequest {
+  string document_id = 1;
+  string tenant_id = 2;
+}
+
+message DeleteDocumentChunksRequest {
+  string document_id = 1;
+  string tenant_id = 2;
+}
+
+// Job Requests
+message CreateJobRequest {
+  string tenant_id = 1;
+  string document_id = 2;
+  string type = 3;
+  int32 max_attempts = 4;
+}
+
+message GetJobRequest {
+  string id = 1;
+  string tenant_id = 2;
+}
+
+message UpdateJobRequest {
+  string id = 1;
+  string tenant_id = 2;
+  string status = 3;
+  int32 progress = 4;
+  string result = 5;
+  string error = 6;
+}
+
+message ListJobsRequest {
+  string tenant_id = 1;
+  string document_id = 2;
+  string status = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message ListJobsResponse {
+  repeated Job items = 1;
+  int32 total = 2;
+}
+
+// Rate Limit Requests
+message LogRateLimitRequest {
+  string api_key_id = 1;
+  string tenant_id = 2;
+  string endpoint = 3;
+  string method = 4;
+  string ip_address = 5;
+  int32 status_code = 6;
+  int32 response_time = 7;
+}
+
+message GetRateLimitStatsRequest {
+  string tenant_id = 1;
+  string period_start = 2;
+  string period_end = 3;
+}
+
+message RateLimitStatsResponse {
+  int32 total_requests = 1;
+  int32 blocked_requests = 2;
+  map<string, int32> by_endpoint = 3;
+  map<string, int32> by_status_code = 4;
+  double avg_response_time = 5;
+}
+
+// Audit Log Requests
+message CreateAuditLogRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  string document_id = 3;
+  string action = 4;
+  string entity_type = 5;
+  string entity_id = 6;
+  string details = 7;
+  string ip_address = 8;
+  string user_agent = 9;
+}
+
+message ListAuditLogsRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  string entity_type = 3;
+  string action = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}
+
+message ListAuditLogsResponse {
+  repeated AuditLog items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  bool has_more = 5;
+}
+
+// Usage Metric Requests
+message RecordUsageMetricRequest {
+  string tenant_id = 1;
+  string metric_type = 2;
+  int32 value = 3;
+  string period = 4;
+  string period_start = 5;
+}
+
+message GetUsageMetricsRequest {
+  string tenant_id = 1;
+  string metric_type = 2;
+  string period_start = 3;
+  string period_end = 4;
+}
+
+message GetUsageMetricsResponse {
+  repeated UsageMetric items = 1;
+}
+
+// Conversation Requests
+message CreateConversationRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  string title = 3;
+}
+
+message GetConversationRequest {
+  string id = 1;
+  string tenant_id = 2;
+}
+
+message ListConversationsRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message ListConversationsResponse {
+  repeated Conversation items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  bool has_more = 5;
+}
+
+message DeleteConversationRequest {
+  string id = 1;
+  string tenant_id = 2;
+  string user_id = 3;
+}
+
+// Message Requests
+message CreateMessageRequest {
+  string conversation_id = 1;
+  string role = 2;
+  string content = 3;
+  string sources = 4;
+  int32 tokens_used = 5;
+}
+
+message GetMessagesRequest {
+  string conversation_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListMessagesResponse {
+  repeated Message items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  bool has_more = 5;
+}
+
+// Generic Response
+message OperationResponse {
+  bool success = 1;
+  string message = 2;
+  string id = 3;
+}
+
+message ErrorResponse {
+  string code = 1;
+  string message = 2;
+  string details = 3;
+}
+
+// ============================================
+// DATABASE SERVICE
+// ============================================
+
+service DatabaseService {
+  // Tenant Operations
+  rpc CreateTenant(CreateTenantRequest) returns (Tenant);
+  rpc GetTenant(GetTenantRequest) returns (Tenant);
+  rpc UpdateTenant(UpdateTenantRequest) returns (Tenant);
+  rpc DeleteTenant(DeleteTenantRequest) returns (OperationResponse);
+  rpc ListTenants(ListTenantsRequest) returns (ListTenantsResponse);
+
+  // User Operations
+  rpc CreateUser(CreateUserRequest) returns (User);
+  rpc GetUser(GetUserRequest) returns (User);
+  rpc UpdateUser(UpdateUserRequest) returns (User);
+  rpc DeleteUser(DeleteUserRequest) returns (OperationResponse);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+
+  // Session Operations
+  rpc CreateSession(CreateSessionRequest) returns (SessionResponse);
+  rpc GetSession(GetSessionRequest) returns (Session);
+  rpc DeleteSession(DeleteSessionRequest) returns (OperationResponse);
+  rpc RefreshSession(RefreshSessionRequest) returns (SessionResponse);
+
+  // API Key Operations
+  rpc CreateApiKey(CreateApiKeyRequest) returns (ApiKeyResponse);
+  rpc GetApiKey(GetApiKeyRequest) returns (ApiKeyResponse);
+  rpc ListApiKeys(ListApiKeysRequest) returns (stream ApiKeyResponse);
+  rpc RevokeApiKey(RevokeApiKeyRequest) returns (OperationResponse);
+
+  // Document Operations
+  rpc CreateDocument(CreateDocumentRequest) returns (Document);
+  rpc GetDocument(GetDocumentRequest) returns (Document);
+  rpc UpdateDocument(UpdateDocumentRequest) returns (Document);
+  rpc DeleteDocument(DeleteDocumentRequest) returns (OperationResponse);
+  rpc ListDocuments(ListDocumentsRequest) returns (ListDocumentsResponse);
+  rpc GetDocumentStats(GetDocumentStatsRequest) returns (DocumentStatsResponse);
+
+  // Document Chunk Operations
+  rpc CreateDocumentChunk(CreateDocumentChunkRequest) returns (DocumentChunk);
+  rpc GetDocumentChunks(GetDocumentChunksRequest) returns (stream DocumentChunk);
+  rpc DeleteDocumentChunks(DeleteDocumentChunksRequest) returns (OperationResponse);
+
+  // Job Operations
+  rpc CreateJob(CreateJobRequest) returns (Job);
+  rpc GetJob(GetJobRequest) returns (Job);
+  rpc UpdateJob(UpdateJobRequest) returns (Job);
+  rpc ListJobs(ListJobsRequest) returns (ListJobsResponse);
+
+  // Rate Limiting
+  rpc LogRateLimit(LogRateLimitRequest) returns (OperationResponse);
+  rpc GetRateLimitStats(GetRateLimitStatsRequest) returns (RateLimitStatsResponse);
+
+  // Audit Logging
+  rpc CreateAuditLog(CreateAuditLogRequest) returns (AuditLog);
+  rpc ListAuditLogs(ListAuditLogsRequest) returns (ListAuditLogsResponse);
+
+  // Usage Metrics
+  rpc RecordUsageMetric(RecordUsageMetricRequest) returns (UsageMetric);
+  rpc GetUsageMetrics(GetUsageMetricsRequest) returns (GetUsageMetricsResponse);
+
+  // Conversation Operations
+  rpc CreateConversation(CreateConversationRequest) returns (Conversation);
+  rpc GetConversation(GetConversationRequest) returns (Conversation);
+  rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse);
+  rpc DeleteConversation(DeleteConversationRequest) returns (OperationResponse);
+
+  // Message Operations
+  rpc CreateMessage(CreateMessageRequest) returns (Message);
+  rpc GetMessages(GetMessagesRequest) returns (ListMessagesResponse);
+}
+
