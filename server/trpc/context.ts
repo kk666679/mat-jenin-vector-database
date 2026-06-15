@@ -5,7 +5,7 @@
 
 import type { FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
 import type { inferAsyncReturnType } from '@trpc/server';
-import { getConfig } from '@/sdk/shared/config';
+import { getConfig } from '@/sdk';
 
 /**
  * Extended request with custom properties

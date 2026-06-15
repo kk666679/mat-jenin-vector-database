@@ -8,8 +8,8 @@
  * 3. Run `npx prisma db push` to create database tables
  */
 
-// Re-export Prisma client
-export { PrismaClient } from '@prisma/client';
+// Re-export Prisma client + types from the canonical module
+export { PrismaClient, Prisma } from '@prisma/client';
 
 // Re-export Prisma types (requires running npx prisma generate first)
 // Note: Uncomment these after running npx prisma generate

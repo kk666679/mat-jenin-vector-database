@@ -5,9 +5,7 @@
 
 import { z } from 'zod';
 import { router, publicProcedure, protectedProcedure, TRPCError } from '../trpc';
-import { getPrismaClient } from '@/sdk/db/prisma';
-import { createWeaviateClient } from '@/sdk/vector';
-import { createRAGPipeline } from '@/sdk/llm';
+import { getPrismaClient, ragService } from '@/sdk';
 
 // Get Prisma client instance
 const prisma = getPrismaClient();
@@ -31,27 +29,6 @@ const MessageListInputSchema = z.object({
   pageSize: z.number().min(1).max(100).default(50),
 });
 
-// Type definitions for search results
-interface SearchResultItem {
-  id: string;
-  content: string;
-  score: number;
-  documentId: string;
-  documentTitle: string;
-}
-
-// Prisma types
-interface PrismaDocumentChunk {
-  id: string;
-  content: string;
-  documentId: string;
-}
-
-interface PrismaDocument {
-  id: string;
-  title: string;
-}
-
 /**
  * RAG Query router
  * Handles:
@@ -67,82 +44,22 @@ export const queryRouter = router({
   search: publicProcedure
     .input(QueryInputSchema)
     .query(async ({ ctx, input }) => {
-      const { query, topK, includeSources } = input;
+      const { query, topK, includeSources, conversationId } = input;
 
       try {
-        let searchResults: SearchResultItem[] = [];
-
-        try {
-          const weaviateClient = createWeaviateClient();
-          const weaviateResults = await weaviateClient.search({
-            tenantId: ctx.tenantId,
-            query,
-            topK,
-          });
-          searchResults = weaviateResults;
-        } catch {
-          console.log('Weaviate not available, falling back to database');
-
-          const chunks = await prisma.documentChunk.findMany({
-            where: { tenantId: ctx.tenantId },
-            take: topK * 2,
-          });
-
-          const queryLower = query.toLowerCase();
-          const matchedChunks: SearchResultItem[] = chunks
-            .map((chunk: PrismaDocumentChunk) => {
-              const contentLower = chunk.content.toLowerCase();
-              const matches = queryLower.split(' ').filter((w: string) => w.length > 2).filter((w: string) => contentLower.includes(w)).length;
-              const score = matches / queryLower.split(' ').length;
-              return {
-                id: chunk.id,
-                content: chunk.content,
-                score,
-                documentId: chunk.documentId,
-                documentTitle: 'Document',
-              };
-            })
-            .filter((c: SearchResultItem) => c.score > 0)
-            .sort((a: SearchResultItem, b: SearchResultItem) => b.score - a.score)
-            .slice(0, topK);
-
-          const documentIds = [...new Set(matchedChunks.map(c => c.documentId))];
-          const documents: PrismaDocument[] = await prisma.document.findMany({
-            where: { id: { in: documentIds } },
-            select: { id: true, title: true },
-          });
-          const docMap = new Map<string, string>(documents.map(d => [d.id, d.title]));
-
-          searchResults = matchedChunks.map(c => ({
-            ...c,
-            documentTitle: docMap.get(c.documentId) || 'Unknown',
-          }));
-        }
-
-        if (searchResults.length === 0) {
-          return {
-            answer: "I couldn't find relevant information in your documents.",
-            sources: [],
-            conversationId: input.conversationId || null,
-          };
-        }
-
-        const ragPipeline = createRAGPipeline();
-        const ragResult = await ragPipeline.query({
+        const result = await ragService.search({
+          tenantId: ctx.tenantId,
           query,
-          context: searchResults,
-          maxContextChunks: topK,
+          topK,
+          includeSources,
+          conversationId: conversationId || null,
         });
 
         return {
-          answer: ragResult.answer,
-          sources: includeSources ? ragResult.sources.map(s => ({
-            documentTitle: s.documentTitle,
-            chunkContent: s.chunkContent,
-            score: s.score,
-          })) : [],
-          conversationId: input.conversationId || null,
-          tokensUsed: ragResult.usage?.totalTokens,
+          answer: result.answer,
+          sources: result.sources,
+          conversationId: result.conversationId,
+          tokensUsed: result.tokensUsed,
         };
       } catch (error) {
         console.error('RAG query failed:', error);
@@ -164,45 +81,10 @@ export const queryRouter = router({
       const { query, topK } = input;
 
       try {
-        try {
-          const weaviateClient = createWeaviateClient();
-          return await weaviateClient.search({
-            tenantId: ctx.tenantId,
-            query,
-            topK,
-          });
-        } catch {
-          const chunks = await prisma.documentChunk.findMany({
-            where: { tenantId: ctx.tenantId },
-            take: topK * 2,
-            orderBy: { createdAt: 'desc' },
-          });
-
-          const queryLower = query.toLowerCase();
-          const matchedChunks: SearchResultItem[] = chunks
-            .map((chunk: PrismaDocumentChunk) => ({
-              id: chunk.id,
-              content: chunk.content,
-              score: chunk.content.toLowerCase().includes(queryLower) ? 1 : 0,
-              documentId: chunk.documentId,
-              documentTitle: 'Document',
-            }))
-            .filter((c: SearchResultItem) => c.score > 0)
-            .sort((a: SearchResultItem, b: SearchResultItem) => b.score - a.score)
-            .slice(0, topK);
-
-          const documentIds = [...new Set(matchedChunks.map(c => c.documentId))];
-          const documents: PrismaDocument[] = await prisma.document.findMany({
-            where: { id: { in: documentIds } },
-            select: { id: true, title: true },
-          });
-          const docMap = new Map<string, string>(documents.map(d => [d.id, d.title]));
-
-          return matchedChunks.map(c => ({
-            ...c,
-            documentTitle: docMap.get(c.documentId) || 'Unknown',
-          }));
-        }
+        return await ragService.searchOnly(
+          { tenantId: ctx.tenantId, query, topK },
+          'binary'
+        );
       } catch (error) {
         console.error('Search failed:', error);
         throw new TRPCError({
