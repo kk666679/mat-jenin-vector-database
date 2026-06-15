@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
-import { webhookService } from '@/sdk/webhook';
-import { getPrismaClient } from '@/sdk/db/prisma';
+import { webhookService, getPrismaClient } from '@/sdk';
 
 // Get Prisma client instance
 const prisma = getPrismaClient();

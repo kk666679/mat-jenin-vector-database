@@ -5,8 +5,7 @@
 
 import { z } from 'zod';
 import { router, protectedProcedure, publicProcedure, TRPCError } from '../trpc';
-import { getPrismaClient } from '@/sdk/db/prisma';
-import { addDocumentJob } from '@/sdk/queue';
+import { getPrismaClient, addDocumentJob } from '@/sdk';
 
 // Get Prisma client instance
 const prisma = getPrismaClient();

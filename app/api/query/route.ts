@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPrismaClient } from '@/sdk/db';
-import { createPineconeClient } from '@/sdk/vector';
-import { createRAGPipeline } from '@/sdk/llm';
+import { getPrismaClient, createPineconeClient, createRAGPipeline } from '@/sdk';
 
 // Explicitly declare runtime as Node.js (required for Pinecone and LLM SDK)
 export const runtime = 'nodejs';

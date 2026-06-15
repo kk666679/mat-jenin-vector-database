@@ -7,8 +7,7 @@
 
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
-import { createWorker, getDocumentProcessingQueue } from '@/sdk/queue';
-import { chunkText, generateEmbedding, createPineconeClient } from '@/sdk/vector';
+import { createWorker, getDocumentProcessingQueue, chunkText, generateEmbedding, createPineconeClient } from '@/sdk';
 
 // Worker-specific Prisma client (separate from Next.js API routes)
 const prisma = new PrismaClient();

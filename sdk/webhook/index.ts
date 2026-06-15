@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { getPrismaClient } from '@/prisma/client';
+import { getPrismaClient } from '@/sdk/db/prisma';
 
 export type WebhookEvent = 
   | 'document.created'

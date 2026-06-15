@@ -1,4 +1,4 @@
-import { webhookService } from '@/sdk/webhook';
+import { webhookService } from '@/sdk';
 
 /**
  * Webhook Worker

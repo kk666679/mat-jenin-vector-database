@@ -50,7 +50,12 @@ The platform exposes **two API surfaces** serving different consumers:
 1. **tRPC over HTTP** (`/api/trpc/*`) -- Primary surface for the web frontend. Uses `@trpc/react-query` on the client with `superjson` serialization. Middleware-enforced auth and tenancy.
 2. **gRPC** (`:50051`) -- Service-to-service interface defined in `sdk/proto/ai-service.proto`. The `AIServiceImpl` class in `server/grpc/aiservice.ts` reimplements the same business logic (search, generate, CRUD) that the tRPC routers expose, but with Protobuf message types.
 
-**Architectural implication:** Business logic is currently **duplicated** between tRPC routers and `AIServiceImpl`. Both independently instantiate Prisma clients, create vector clients, and build RAG pipelines. This is a structural risk (see Section 5).
+**Architectural implication:** Business logic was previously **duplicated** between tRPC routers and `AIServiceImpl`. Both independently instantiated Prisma clients, created vector clients, and built RAG pipelines (the structural risk in Section 5).
+
+> **Consolidation status (resolved):** The SDK is now the single seam for shared logic.
+> - **Single Prisma client.** `sdk/db/prisma.ts` is the canonical, feature-complete singleton (retry, health check, `TenantPrismaClient`). The former `prisma/client.ts` is now a thin re-export, and every consumer resolves to the same connection pool.
+> - **Shared RAG service.** `sdk/services/rag.ts` owns the Pinecone → Weaviate → SQL-fallback search and answer generation. Both `queryRouter.search`/`searchOnly` (tRPC) and `AIServiceImpl.search`/`searchOnly` (gRPC) now delegate to it, so behaviour cannot drift between transports.
+> - **Unified entry point.** `sdk/index.ts` is a root barrel; application code imports from `@/sdk` (with `vector`, `llm`, and `models` exposed as namespaces to avoid type-name collisions) instead of deep module paths.
 
 ---
 

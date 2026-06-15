@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getPrismaClient } from '@/sdk/db';
-import { createPineconeClient, generateEmbedding } from '@/sdk/vector';
+import { getPrismaClient, createPineconeClient, generateEmbedding } from '@/sdk';
 import { streamTextAI, getDefaultProvider } from '@/sdk/llm/ai-sdk';
 
 // Explicitly declare runtime as Node.js (required for Pinecone and LLM SDK)

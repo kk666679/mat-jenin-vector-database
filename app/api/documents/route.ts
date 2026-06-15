@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPrismaClient } from '@/sdk/db';
-
-import { addDocumentJob } from '@/sdk/queue';
+import { getPrismaClient, addDocumentJob } from '@/sdk';
 
 // Explicitly declare runtime as Node.js
 export const runtime = 'nodejs';

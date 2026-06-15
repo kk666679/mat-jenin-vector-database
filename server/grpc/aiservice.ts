@@ -5,9 +5,7 @@
  * Uses tRPC handlers internally for business logic
  */
 
-import { getPrismaClient } from '@/sdk/db/prisma';
-import { createWeaviateClient, createPineconeClient } from '@/sdk/vector';
-import { LLMClient, createRAGPipeline } from '@/sdk/llm';
+import { getPrismaClient, LLMClient, ragService } from '@/sdk';
 import type {
   ISearchRequest,
   ISearchResponse,
@@ -61,82 +59,19 @@ export class AIServiceImpl {
     const { query, tenantId, conversationId, topK = 5, includeSources = true } = request;
 
     try {
-      // Try vector search first
-      let searchResults: Array<{
-        id: string;
-        content: string;
-        score: number;
-        documentId: string;
-        documentTitle: string;
-      }> = [];
-
-      try {
-        // Try Pinecone first
-        const pinecone = createPineconeClient();
-        searchResults = await pinecone.search({ tenantId, query, topK });
-      } catch {
-        try {
-          // Fall back to Weaviate
-          const weaviate = createWeaviateClient();
-          searchResults = await weaviate.search({ tenantId, query, topK });
-        } catch {
-          // Fall back to SQL search
-          const chunks = await this.prisma.documentChunk.findMany({
-            where: { tenantId },
-            take: topK * 2,
-            include: { document: { select: { title: true } } },
-          });
-
-          const queryLower = query.toLowerCase();
-          const matchedChunks = chunks
-            .map((chunk: any) => {
-              const contentLower = chunk.content.toLowerCase();
-              const matches = queryLower.split(' ')
-                .filter((w: string) => w.length > 2)
-                .filter((w: string) => contentLower.includes(w)).length;
-              const score = matches / queryLower.split(' ').length;
-              return {
-                id: chunk.id,
-                content: chunk.content,
-                score,
-                documentId: chunk.documentId,
-                documentTitle: chunk.document?.title || 'Unknown',
-              };
-            })
-            .filter((c: { score: number }) => c.score > 0)
-            .sort((a: { score: number }, b: { score: number }) => b.score - a.score)
-            .slice(0, topK);
-
-          searchResults = matchedChunks;
-        }
-      }
-
-      if (searchResults.length === 0) {
-        return {
-          answer: "I couldn't find relevant information in your documents.",
-          sources: [],
-          conversationId: conversationId || '',
-          tokensUsed: 0,
-        };
-      }
-
-      // Generate answer with RAG
-      const ragPipeline = createRAGPipeline();
-      const ragResult = await ragPipeline.query({
+      const result = await ragService.search({
+        tenantId,
         query,
-        context: searchResults,
-        maxContextChunks: topK,
+        topK,
+        includeSources,
+        conversationId: conversationId || null,
       });
 
       return {
-        answer: ragResult.answer,
-        sources: includeSources ? ragResult.sources.map(s => ({
-          documentTitle: s.documentTitle,
-          chunkContent: s.chunkContent,
-          score: s.score,
-        })) : [],
-        conversationId: conversationId || '',
-        tokensUsed: ragResult.usage?.totalTokens || 0,
+        answer: result.answer,
+        sources: result.sources,
+        conversationId: result.conversationId || '',
+        tokensUsed: result.tokensUsed,
       };
     } catch (error) {
       console.error('Search RPC error:', error);
@@ -151,40 +86,8 @@ export class AIServiceImpl {
     const { query, tenantId, topK = 5 } = request;
 
     try {
-      try {
-        const pinecone = createPineconeClient();
-        const results = await pinecone.search({ tenantId, query, topK });
-        return { results: results as any };
-      } catch {
-        try {
-          const weaviate = createWeaviateClient();
-          const results = await weaviate.search({ tenantId, query, topK });
-          return { results: results as any };
-        } catch {
-          // SQL fallback
-          const chunks = await this.prisma.documentChunk.findMany({
-            where: { tenantId },
-            take: topK * 2,
-            include: { document: { select: { title: true } } },
-          });
-
-          const queryLower = query.toLowerCase();
-          const matchedChunks = chunks
-            .map((chunk: any) => ({
-              id: chunk.id,
-              content: chunk.content,
-              score: chunk.content.toLowerCase().includes(queryLower) ? 1 : 0,
-              documentId: chunk.documentId,
-              documentTitle: chunk.document?.title || 'Unknown',
-              metadata: {} as Record<string, string>,
-            }))
-            .filter((c: { score: number }) => c.score > 0)
-            .sort((a: { score: number }, b: { score: number }) => b.score - a.score)
-            .slice(0, topK);
-
-          return { results: matchedChunks };
-        }
-      }
+      const results = await ragService.searchOnly({ tenantId, query, topK }, 'binary');
+      return { results: results as any };
     } catch (error) {
       console.error('SearchOnly RPC error:', error);
       throw error;
