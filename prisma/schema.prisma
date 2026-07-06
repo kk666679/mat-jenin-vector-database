@@ -1,0 +1,1188 @@
+// schema.prisma
+// Matjenin - Next-Gen Vector Search & Agentic RAG Platform
+// Version: 2.0.0 (2026)
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex", "postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "datasourceUrl"
+}
+
+// ============================================
+// TENANT & ORGANIZATION
+// ============================================
+
+model Tenant {
+  id              String    @id @default(cuid())
+  name            String
+  slug            String    @unique
+  description     String?
+  logo            String?
+  website         String?
+  
+  // Configuration
+  config          Json?     // Tenant-specific configuration
+  plan            Plan      @default(FREE)
+  status          TenantStatus @default(ACTIVE)
+  
+  // Limits
+  maxUsers        Int       @default(5)
+  maxDocuments    Int       @default(100)
+  maxStorageMb    Int       @default(1000)
+  maxApiCalls     Int       @default(10000)
+  rateLimitRpm    Int       @default(60)
+  rateLimitRph    Int       @default(1000)
+  
+  // Features
+  features        Json?     // Feature flags
+  
+  // Relations
+  users           User[]
+  documents       Document[]
+  apiKeys         ApiKey[]
+  auditLogs       AuditLog[]
+  workflows       Workflow[]
+  agents          Agent[]
+  webhooks        Webhook[]
+  subscriptions   Subscription[]
+  billingRecords  BillingRecord[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([name])
+  @@index([slug, status])
+  @@map("tenants")
+}
+
+enum Plan {
+  FREE
+  PRO
+  TEAM
+  ENTERPRISE
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+  TRIAL
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String?
+  name            String
+  avatar          String?
+  
+  // Authentication
+  authProvider    AuthProvider @default(EMAIL)
+  providerId      String?
+  isEmailVerified Boolean   @default(false)
+  lastLoginAt     DateTime?
+  
+  // Permissions
+  role            UserRole  @default(USER)
+  permissions     Json?     // Granular permissions
+  
+  // Preferences
+  preferences     Json?     // User-specific settings
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  sessions        Session[]
+  apiKeys         ApiKey[]
+  auditLogs       AuditLog[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([email, tenantId])
+  @@index([tenantId, role])
+  @@map("users")
+}
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+  GITHUB
+  OKTA
+  AZURE
+  SAML
+  OIDC
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  USER
+  VIEWER
+}
+
+model Session {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  token           String    @unique
+  ipAddress       String?
+  userAgent       String?
+  expiresAt       DateTime
+  isRevoked       Boolean   @default(false)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([userId, expiresAt])
+  @@map("sessions")
+}
+
+model ApiKey {
+  id              String    @id @default(cuid())
+  name            String
+  key             String    @unique
+  keyPrefix       String    @default("sk_")
+  
+  // Permissions
+  permissions     Json?     // Granular permissions
+  allowedIps      String[]? // IP whitelist
+  
+  // Limits
+  rateLimitRpm    Int?      // Override tenant limit
+  rateLimitRph    Int?      // Override tenant limit
+  
+  // Status
+  isActive        Boolean   @default(true)
+  lastUsedAt      DateTime?
+  expiresAt       DateTime?
+  
+  // Relations
+  user            User      @relation(fields: [userId], references: [id])
+  userId          String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  auditLogs       AuditLog[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([key, tenantId])
+  @@map("api_keys")
+}
+
+// ============================================
+// DOCUMENTS & VECTOR STORAGE
+// ============================================
+
+model Document {
+  id              String    @id @default(cuid())
+  filename        String
+  mimeType        String
+  size            Int       // Bytes
+  content         String?   @db.Text // Stored for small documents
+  
+  // Processing
+  status          DocumentStatus @default(PENDING)
+  error           String?   @db.Text
+  
+  // Chunking
+  chunkSize       Int       @default(512)
+  overlap         Int       @default(50)
+  totalChunks     Int       @default(0)
+  vectorIds       String[]  // References to Weaviate IDs
+  
+  // Metadata
+  metadata        Json?     // Custom metadata
+  tags            String[]? // Searchable tags
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  uploadedBy      User?     @relation(fields: [uploadedById], references: [id])
+  uploadedById    String?
+  chunks          Chunk[]
+  
+  // Versioning
+  version         Int       @default(1)
+  previousVersionId String?
+  isLatest        Boolean   @default(true)
+  
+  // Timestamps
+  uploadedAt      DateTime  @default(now())
+  processedAt     DateTime?
+  lastAccessedAt  DateTime?
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, status])
+  @@index([tenantId, filename])
+  @@index([tenantId, tags])
+  @@fulltext([filename, content])
+  @@map("documents")
+}
+
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  DELETED
+}
+
+model Chunk {
+  id              String    @id @default(cuid())
+  index           Int       // Chunk index within document
+  text            String    @db.Text
+  vectorId        String    // Weaviate ID
+  
+  // Quality metrics
+  qualityScore    Float?    // 0-1 quality score
+  tokenCount      Int?      // Number of tokens
+  
+  // Relations
+  document        Document  @relation(fields: [documentId], references: [id])
+  documentId      String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  
+  // Metadata
+  metadata        Json?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([documentId, index])
+  @@index([tenantId, vectorId])
+  @@fulltext([text])
+  @@map("chunks")
+}
+
+model Embedding {
+  id              String    @id @default(cuid())
+  text            String    @db.Text
+  vector          Json?     // Store for small vectors or use Weaviate
+  model           String    // Embedding model used
+  dimensions      Int       // Vector dimensions
+  tenantId        String
+  
+  // Relations
+  chunk           Chunk?    @relation(fields: [chunkId], references: [id])
+  chunkId         String?
+  
+  // Metadata
+  metadata        Json?
+  qualityScore    Float?    // 0-1 embedding quality
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, model])
+  @@index([chunkId])
+  @@map("embeddings")
+}
+
+// ============================================
+// RAG & QUERIES
+// ============================================
+
+model Query {
+  id              String    @id @default(cuid())
+  text            String    @db.Text
+  type            QueryType @default(VECTOR)
+  
+  // Results
+  results         Json?     // Retrieved chunks
+  answer          String?   @db.Text
+  sources         Json?     // Source citations
+  
+  // Reasoning
+  reasoning       Json?     // Chain of thought traces
+  confidence      Float?    // 0-1 confidence score
+  
+  // Performance
+  latency         Int?      // Response time in ms
+  tokenCount      Int?      // Tokens used
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  user            User?     @relation(fields: [userId], references: [id])
+  userId          String?
+  sessionId       String?   // Chat session ID
+  
+  // Metadata
+  metadata        Json?
+  feedback        QueryFeedback? // User feedback
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, type])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, sessionId])
+  @@fulltext([text])
+  @@map("queries")
+}
+
+enum QueryType {
+  VECTOR
+  KEYWORD
+  HYBRID
+  RAG
+  AGENTIC
+}
+
+model QueryFeedback {
+  id              String    @id @default(cuid())
+  rating          Int?      // 1-5
+  helpful         Boolean?
+  comment         String?   @db.Text
+  
+  // Relations
+  query           Query     @relation(fields: [queryId], references: [id])
+  queryId         String    @unique
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@map("query_feedback")
+}
+
+// ============================================
+// AGENTS & ORCHESTRATION
+// ============================================
+
+model Agent {
+  id              String    @id @default(cuid())
+  name            String
+  type            AgentType @default(CUSTOM)
+  version         String    @default("1.0.0")
+  description     String?   @db.Text
+  
+  // Capabilities
+  capabilities    Json?     // Agent capabilities
+  config          Json?     // Agent configuration
+  
+  // Performance
+  performance     Json?     // Metrics: latency, success rate, throughput
+  
+  // Status
+  status          AgentStatus @default(ACTIVE)
+  lastActiveAt    DateTime?
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  executions      AgentExecution[]
+  tasks           AgentTask[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, type])
+  @@index([tenantId, status])
+  @@map("agents")
+}
+
+enum AgentType {
+  EMBEDDING
+  RAG
+  DOCUMENT_PROCESSOR
+  QUERY
+  INTENT
+  VALIDATION
+  MONITORING
+  ORCHESTRATOR
+  SEARCH
+  STORAGE
+  CUSTOM
+}
+
+enum AgentStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+  DEGRADED
+}
+
+model AgentTask {
+  id              String    @id @default(cuid())
+  type            String    // Task type from agent
+  payload         Json      // Task input
+  priority        Int       @default(1) // 1-10, higher is more important
+  
+  // Status
+  status          TaskStatus @default(PENDING)
+  progress        Int?      // 0-100
+  error           String?   @db.Text
+  
+  // Retry
+  attempts        Int       @default(0)
+  maxAttempts     Int       @default(3)
+  lastAttemptAt   DateTime?
+  
+  // Relations
+  agent           Agent?    @relation(fields: [agentId], references: [id])
+  agentId         String?
+  execution       AgentExecution? @relation(fields: [executionId], references: [id])
+  executionId     String?
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  
+  // Result
+  result          Json?
+  resultData      String?   @db.Text
+  
+  // Dependencies
+  dependencies    String[]? // Task IDs this depends on
+  dependsOn       AgentTask[] @relation("TaskDependencies")
+  dependents      AgentTask[] @relation("TaskDependencies")
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, status])
+  @@index([tenantId, type, status])
+  @@index([tenantId, priority, status])
+  @@map("agent_tasks")
+}
+
+enum TaskStatus {
+  PENDING
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+  RETRY
+}
+
+model AgentExecution {
+  id              String    @id @default(cuid())
+  workflowId      String?   // Reference to workflow
+  status          ExecutionStatus @default(PENDING)
+  steps           Json?     // Execution steps
+  
+  // Metrics
+  duration        Int?      // Total execution time in ms
+  stepResults     Json?     // Results from each step
+  
+  // Relations
+  agent           Agent?    @relation(fields: [agentId], references: [id])
+  agentId         String?
+  tasks           AgentTask[]
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  
+  // Error
+  error           String?   @db.Text
+  
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, status])
+  @@index([tenantId, workflowId])
+  @@map("agent_executions")
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ============================================
+// WORKFLOWS
+// ============================================
+
+model Workflow {
+  id              String    @id @default(cuid())
+  name            String
+  description     String?   @db.Text
+  version         String    @default("1.0.0")
+  
+  // Definition
+  definition      Json      // Workflow steps and dependencies
+  triggers        Json?     // Trigger configuration
+  schedule        String?   // Cron expression for scheduled workflows
+  
+  // Status
+  status          WorkflowStatus @default(ACTIVE)
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  executions      WorkflowExecution[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, status])
+  @@index([tenantId, name])
+  @@map("workflows")
+}
+
+enum WorkflowStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+  ARCHIVED
+}
+
+model WorkflowExecution {
+  id              String    @id @default(cuid())
+  workflow        Workflow  @relation(fields: [workflowId], references: [id])
+  workflowId      String
+  status          ExecutionStatus @default(PENDING)
+  steps           Json?     // Step statuses
+  
+  // Input/Output
+  input           Json?     // Input parameters
+  output          Json?     // Execution results
+  
+  // Metrics
+  duration        Int?      // Total execution time in ms
+  stepResults     Json?     // Results from each step
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  triggeredBy     User?     @relation(fields: [triggeredById], references: [id])
+  triggeredById   String?
+  
+  // Error
+  error           String?   @db.Text
+  
+  createdAt       DateTime  @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, status])
+  @@index([tenantId, workflowId, status])
+  @@map("workflow_executions")
+}
+
+// ============================================
+// SKILLS
+// ============================================
+
+model Skill {
+  id              String    @id @default(cuid())
+  name            String
+  version         String    @default("1.0.0")
+  description     String?   @db.Text
+  category        SkillCategory @default(CUSTOM)
+  
+  // Definition
+  inputSchema     Json?     // Input validation schema
+  outputSchema    Json?     // Output validation schema
+  config          Json?     // Skill configuration
+  
+  // Performance
+  performance     Json?     // Metrics: latency, success rate, throughput
+  
+  // Status
+  status          SkillStatus @default(ACTIVE)
+  isBuiltIn       Boolean   @default(false)
+  
+  // Relations
+  tenant          Tenant?   @relation(fields: [tenantId], references: [id])
+  tenantId        String?
+  executions      SkillExecution[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, category])
+  @@index([tenantId, status])
+  @@map("skills")
+}
+
+enum SkillCategory {
+  EMBEDDING
+  RAG
+  DOCUMENT
+  SEARCH
+  INTENT
+  VALIDATION
+  MONITORING
+  ORCHESTRATION
+  STORAGE
+  NLP
+  CUSTOM
+}
+
+enum SkillStatus {
+  ACTIVE
+  INACTIVE
+  DEPRECATED
+}
+
+model SkillExecution {
+  id              String    @id @default(cuid())
+  skill           Skill     @relation(fields: [skillId], references: [id])
+  skillId         String
+  
+  // Input/Output
+  input           Json
+  output          Json?
+  
+  // Performance
+  duration        Int?      // Execution time in ms
+  success         Boolean   @default(false)
+  error           String?   @db.Text
+  
+  // Metrics
+  metadata        Json?     // Additional execution context
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  triggeredBy     User?     @relation(fields: [triggeredById], references: [id])
+  triggeredById   String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, skillId])
+  @@index([tenantId, success])
+  @@index([tenantId, skillId, success])
+  @@map("skill_executions")
+}
+
+// ============================================
+// INTENT & NLP
+// ============================================
+
+model Intent {
+  id              String    @id @default(cuid())
+  name            String
+  description     String?   @db.Text
+  
+  // Training
+  trainingData    Json?     // Training examples
+  confidence      Float?    // Model confidence
+  version         String    @default("1.0.0")
+  
+  // Status
+  isActive        Boolean   @default(true)
+  isBuiltIn       Boolean   @default(false)
+  
+  // Relations
+  tenant          Tenant?   @relation(fields: [tenantId], references: [id])
+  tenantId        String?
+  classifications IntentClassification[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, name])
+  @@map("intents")
+}
+
+model IntentClassification {
+  id              String    @id @default(cuid())
+  intent          Intent    @relation(fields: [intentId], references: [id])
+  intentId        String
+  
+  // Classification
+  text            String    @db.Text
+  confidence      Float
+  entities        Json?     // Extracted entities
+  
+  // Feedback
+  isCorrect       Boolean?
+  feedback        String?   @db.Text
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, intentId])
+  @@index([tenantId, confidence])
+  @@fulltext([text])
+  @@map("intent_classifications")
+}
+
+// ============================================
+// WEBHOOKS & INTEGRATIONS
+// ============================================
+
+model Webhook {
+  id              String    @id @default(cuid())
+  name            String
+  url             String    @db.Text
+  secret          String?   // HMAC secret
+  
+  // Configuration
+  events          String[]  // Events to listen for
+  headers         Json?     // Custom headers
+  retryConfig     Json?     // Retry configuration
+  
+  // Status
+  isActive        Boolean   @default(true)
+  lastTriggered   DateTime?
+  failureCount    Int       @default(0)
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  deliveries      WebhookDelivery[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, isActive])
+  @@map("webhooks")
+}
+
+model WebhookDelivery {
+  id              String    @id @default(cuid())
+  webhook         Webhook   @relation(fields: [webhookId], references: [id])
+  webhookId       String
+  
+  // Delivery
+  event           String
+  payload         Json
+  statusCode      Int?
+  response        String?   @db.Text
+  
+  // Status
+  isSuccess       Boolean   @default(false)
+  attempt         Int       @default(1)
+  error           String?   @db.Text
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, webhookId])
+  @@index([tenantId, isSuccess])
+  @@map("webhook_deliveries")
+}
+
+// ============================================
+// AUDIT & LOGGING
+// ============================================
+
+model AuditLog {
+  id              String    @id @default(cuid())
+  action          String
+  resource        String
+  resourceId      String?
+  
+  // Context
+  details         Json?     // Additional context
+  ipAddress       String?
+  userAgent       String?
+  metadata        Json?     // Extended metadata
+  
+  // Relations
+  user            User?     @relation(fields: [userId], references: [id])
+  userId          String?
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  apiKey          ApiKey?   @relation(fields: [apiKeyId], references: [id])
+  apiKeyId        String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, action])
+  @@index([tenantId, resource, resourceId])
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+// ============================================
+// METRICS & MONITORING
+// ============================================
+
+model Metric {
+  id              String    @id @default(cuid())
+  name            String
+  value           Float
+  type            MetricType @default(GAUGE)
+  
+  // Labels
+  labels          Json?     // Dimensions for grouping
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, name])
+  @@index([tenantId, name, createdAt(sort: Desc)])
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@map("metrics")
+}
+
+enum MetricType {
+  COUNTER
+  GAUGE
+  HISTOGRAM
+  SUMMARY
+}
+
+model Alert {
+  id              String    @id @default(cuid())
+  name            String
+  description     String?   @db.Text
+  severity        AlertSeverity @default(WARNING)
+  
+  // Configuration
+  condition       String    @db.Text // Expression to evaluate
+  threshold       Float
+  cooldown        Int?      // Cooldown in seconds
+  
+  // Status
+  isActive        Boolean   @default(true)
+  lastTriggered   DateTime?
+  triggerCount    Int       @default(0)
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, isActive])
+  @@map("alerts")
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+// ============================================
+// BILLING & SUBSCRIPTIONS
+// ============================================
+
+model Subscription {
+  id              String    @id @default(cuid())
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String    @unique
+  
+  // Subscription details
+  provider        String    @default("stripe")
+  subscriptionId  String    @unique
+  plan            Plan      @default(FREE)
+  status          SubscriptionStatus @default(ACTIVE)
+  
+  // Billing
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
+  
+  // Usage
+  usage          Json?     // Current usage metrics
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@map("subscriptions")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+  TRIAL
+}
+
+model BillingRecord {
+  id              String    @id @default(cuid())
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  
+  // Record details
+  invoiceId       String?   @unique
+  amount          Float
+  currency        String    @default("USD")
+  description     String?   @db.Text
+  
+  // Status
+  status          BillingStatus @default(PENDING)
+  paymentMethod   String?
+  
+  // Usage breakdown
+  usage           Json?     // Detailed usage: tokens, storage, queries
+  
+  // Timestamps
+  periodStart     DateTime
+  periodEnd       DateTime
+  paidAt          DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, status])
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@map("billing_records")
+}
+
+enum BillingStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+// ============================================
+// VECTOR INDEX CONFIGURATION
+// ============================================
+
+model VectorIndex {
+  id              String    @id @default(cuid())
+  name            String
+  type            VectorIndexType @default(HNSW)
+  dimensions      Int
+  
+  // Configuration
+  config          Json?     // Index-specific configuration
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  
+  // Status
+  isActive        Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, name])
+  @@map("vector_indexes")
+}
+
+enum VectorIndexType {
+  HNSW
+  IVF_FLAT
+  IVF_PQ
+  SCANN
+}
+
+// ============================================
+// EVALUATION & BENCHMARKS
+// ============================================
+
+model Evaluation {
+  id              String    @id @default(cuid())
+  name            String
+  type            EvaluationType @default(BENCHMARK)
+  
+  // Configuration
+  config          Json?     // Evaluation parameters
+  score           Float?
+  
+  // Results
+  results         Json?     // Detailed results
+  summary         Json?     // Summary metrics
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  skill           Skill?    @relation(fields: [skillId], references: [id])
+  skillId         String?
+  
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, type])
+  @@index([tenantId, skillId])
+  @@map("evaluations")
+}
+
+enum EvaluationType {
+  BENCHMARK
+  PERFORMANCE
+  ACCURACY
+  STRESS
+}
+
+// ============================================
+// MODEL FINE-TUNING
+// ============================================
+
+model FineTuningJob {
+  id              String    @id @default(cuid())
+  name            String
+  baseModel       String    // Model to fine-tune
+  model           String?   // Resulting model ID
+  
+  // Configuration
+  config          Json?     // Training parameters
+  trainingData    Json?     // Dataset reference
+  
+  // Status
+  status          TrainingStatus @default(PENDING)
+  progress        Int?      // 0-100
+  
+  // Results
+  performance     Json?     // Post-training metrics
+  error           String?   @db.Text
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  completedAt     DateTime?
+  
+  @@index([tenantId, status])
+  @@map("fine_tuning_jobs")
+}
+
+enum TrainingStatus {
+  PENDING
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ============================================
+// SEARCH SESSIONS & HISTORY
+// ============================================
+
+model SearchSession {
+  id              String    @id @default(cuid())
+  sessionId       String
+  name            String?
+  
+  // Context
+  context         Json?     // Search context
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  user            User?     @relation(fields: [userId], references: [id])
+  userId          String?
+  queries         Query[]
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, sessionId])
+  @@index([tenantId, userId])
+  @@map("search_sessions")
+}
+
+// ============================================
+// INTEGRATIONS
+// ============================================
+
+model Integration {
+  id              String    @id @default(cuid())
+  type            IntegrationType
+  name            String
+  config          Json?     // Integration configuration
+  
+  // Status
+  isActive        Boolean   @default(true)
+  lastSync        DateTime?
+  
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([tenantId, type])
+  @@map("integrations")
+}
+
+enum IntegrationType {
+  SLACK
+  TEAMS
+  DISCORD
+  GITHUB
+  JIRA
+  SALESFORCE
+  HUBSPOT
+  NOTION
+  CONFLUENCE
+  DRIVE
+  SHAREPOINT
+  CUSTOM
+}
+
+// ============================================
+// SYSTEM CONFIGURATION
+// ============================================
+
+model SystemConfig {
+  id              String    @id @default(cuid())
+  key             String    @unique
+  value           Json
+  description     String?   @db.Text
+  
+  // Audit
+  updatedBy       String?
+  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime  @default(now())
+  
+  @@map("system_config")
+}
+
+// ============================================
+// MIGRATIONS & VERSIONING
+// ============================================
+
+model SchemaMigration {
+  id              String    @id @default(cuid())
+  version         String    @unique
+  name            String?
+  sql             String    @db.Text
+  
+  // Status
+  status          MigrationStatus @default(PENDING)
+  error           String?   @db.Text
+  
+  // Timestamps
+  appliedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@map("schema_migrations")
+}
+
+enum MigrationStatus {
+  PENDING
+  APPLIED
+  FAILED
+  ROLLED_BACK
+}
