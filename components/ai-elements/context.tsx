@@ -14,6 +14,12 @@ import { cn } from "@/lib/utils";
 import { createContext, useContext, useMemo } from "react";
 import { getUsage } from "tokenlens";
 
+// Extend the LanguageModelUsage type to include optional reasoning and cache tokens
+type ExtendedLanguageModelUsage = LanguageModelUsage & {
+  reasoningTokens?: number;
+  cachedInputTokens?: number;
+};
+
 const PERCENT_MAX = 100;
 const ICON_RADIUS = 10;
 const ICON_VIEWBOX = 24;
@@ -25,7 +31,7 @@ type ModelId = string;
 interface ContextSchema {
   usedTokens: number;
   maxTokens: number;
-  usage?: LanguageModelUsage;
+  usage?: ExtendedLanguageModelUsage;
   modelId?: ModelId;
 }
 
@@ -327,6 +333,7 @@ export const ContextReasoningUsage = ({
   ...props
 }: ContextReasoningUsageProps) => {
   const { usage, modelId } = useContextValue();
+  // Now usage is ExtendedLanguageModelUsage, so reasoningTokens exists optionally
   const reasoningTokens = usage?.reasoningTokens ?? 0;
 
   if (children) {
@@ -367,6 +374,7 @@ export const ContextCacheUsage = ({
   ...props
 }: ContextCacheUsageProps) => {
   const { usage, modelId } = useContextValue();
+  // Now usage is ExtendedLanguageModelUsage, so cachedInputTokens exists optionally
   const cacheTokens = usage?.cachedInputTokens ?? 0;
 
   if (children) {

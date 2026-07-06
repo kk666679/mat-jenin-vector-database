@@ -1,0 +1,18 @@
+{
+  "environment": "production",
+  "agentSystem": {
+    "maxConcurrentTasks": 50,
+    "taskTimeout": 60000
+  },
+  "queue": {
+    "concurrency": 20
+  },
+  "logging": {
+    "level": "warn",
+    "pretty": false
+  },
+  "monitoring": {
+    "enabled": true,
+    "metricsInterval": 30000
+  }
+}

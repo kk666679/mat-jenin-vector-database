@@ -4,10 +4,8 @@ import { getPrismaClient, createPineconeClient, createRAGPipeline } from '@/sdk'
 // Explicitly declare runtime as Node.js (required for Pinecone and LLM SDK)
 export const runtime = 'nodejs';
 
-// Get prisma client instance
-const prisma = getPrismaClient();
-
 export async function POST(request: NextRequest) {
+  const prisma = getPrismaClient();
   try {
     const tenantId = request.headers.get('x-tenant-id') || 'default-tenant';
     const { query } = await request.json();

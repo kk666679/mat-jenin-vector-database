@@ -1,0 +1,360 @@
+# OpenProse - OpenClaw Multi-Agent System Configuration
+# Version: 1.0.0
+
+metadata:
+  name: "Matjenin OpenClaw System"
+  version: "1.0.0"
+  description: "Multi-agent system for AI-powered document processing and RAG"
+  author: "Matjenin Team"
+  license: "MIT"
+  created: "2024-01-01"
+  updated: "2024-01-01"
+
+system:
+  environment: development
+  debug: true
+  log_level: info
+  timezone: UTC
+  
+  resources:
+    cpu: 4
+    memory: 8GB
+    storage: 50GB
+  
+  limits:
+    max_concurrent_tasks: 50
+    max_queue_size: 10000
+    max_retries: 3
+    task_timeout: 30000
+
+agents:
+  registry:
+    auto_register: true
+    scan_paths:
+      - .openclaw/agents/implementations
+      - .openclaw/agents/custom
+  
+  defaults:
+    max_retries: 3
+    timeout: 30000
+    priority: 1
+  
+  capabilities:
+    embedding:
+      models:
+        - Xenova/all-MiniLM-L6-v2
+        - Xenova/all-mpnet-base-v2
+        - Xenova/bert-base-uncased
+      batch_size: 32
+      cache_enabled: true
+      cache_ttl: 3600
+    
+    rag:
+      top_k: 10
+      rerank: true
+      hybrid_search: true
+      include_sources: true
+      include_reasoning: true
+    
+    document_processing:
+      chunk_size: 512
+      overlap: 50
+      supported_formats:
+        - text/plain
+        - application/pdf
+        - application/msword
+        - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+        - text/markdown
+        - text/html
+
+queues:
+  redis:
+    url: "redis://localhost:6379"
+    max_retries: 3
+    retry_delay: 1000
+    concurrency: 10
+    stalled_interval: 30000
+    max_stalled_count: 3
+  
+  bull:
+    prefix: "openclaw"
+    default_job_options:
+      attempts: 3
+      backoff:
+        type: exponential
+        delay: 1000
+      remove_on_complete: 100
+      remove_on_fail: 100
+      timeout: 30000
+
+workflows:
+  definitions:
+    - id: process-document
+      path: .openclaw/workflows/definitions/document.processing.workflow.ts
+      enabled: true
+    
+    - id: rag-query
+      path: .openclaw/workflows/definitions/rag.query.workflow.ts
+      enabled: true
+    
+    - id: batch-process
+      path: .openclaw/workflows/definitions/batch.process.workflow.ts
+      enabled: true
+  
+  templates:
+    path: .openclaw/workflows/templates
+  
+  execution:
+    max_concurrent: 10
+    timeout: 300000
+    retry_on_failure: true
+
+ml:
+  transformers:
+    model_cache: .openclaw/models
+    use_gpu: false
+    device: cpu
+    precision: float32
+  
+  tensorflow:
+    backend: cpu
+    gpu_memory_limit: 1024
+  
+  models:
+    embedding:
+      default: Xenova/all-MiniLM-L6-v2
+      fallback: Xenova/all-MiniLM-L6-v2
+      quantized: false
+    
+    text_generation:
+      default: Xenova/gpt2
+      fallback: Xenova/gpt2
+      max_tokens: 200
+      temperature: 0.7
+      top_k: 50
+    
+    summarization:
+      default: Xenova/distilbart-cnn-6-6
+      fallback: Xenova/distilbart-cnn-6-6
+      max_length: 150
+      min_length: 50
+    
+    question_answering:
+      default: Xenova/distilbert-base-uncased-distilled-squad
+      fallback: Xenova/distilbert-base-uncased-distilled-squad
+
+hooks:
+  pre_commit:
+    - name: validate-types
+      script: .openclaw/hooks/pre-commit/validate.types.ts
+      enabled: true
+    
+    - name: lint-code
+      script: .openclaw/hooks/pre-commit/lint.code.sh
+      enabled: true
+    
+    - name: check-dependencies
+      script: .openclaw/hooks/pre-commit/check.dependencies.sh
+      enabled: true
+  
+  post_commit:
+    - name: update-metrics
+      script: .openclaw/hooks/post-commit/update.metrics.sh
+      enabled: true
+    
+    - name: backup-workflows
+      script: .openclaw/hooks/post-commit/backup.workflows.sh
+      enabled: true
+
+monitoring:
+  enabled: true
+  metrics_interval: 60000
+  
+  metrics:
+    - name: agent_errors
+      type: counter
+      description: "Number of agent errors"
+    
+    - name: task_duration
+      type: histogram
+      description: "Task execution duration"
+    
+    - name: queue_length
+      type: gauge
+      description: "Current queue length"
+    
+    - name: active_tasks
+      type: gauge
+      description: "Number of active tasks"
+  
+  alerts:
+    error_rate:
+      enabled: true
+      threshold: 0.1
+      severity: warning
+      cooldown: 300
+    
+    queue_length:
+      enabled: true
+      threshold: 1000
+      severity: warning
+      cooldown: 60
+    
+    response_time:
+      enabled: true
+      threshold: 5000
+      severity: error
+      cooldown: 300
+
+security:
+  encryption:
+    enabled: true
+    algorithm: aes-256-gcm
+    key_rotation: 30d
+  
+  audit:
+    enabled: true
+    log_path: .openclaw/logs/audit.log
+    include_payloads: true
+  
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
+    requests_per_hour: 1000
+
+plugins:
+  enabled: true
+  scan_paths:
+    - .openclaw/plugins
+    - .openclaw/plugins/custom
+  
+  auto_load: true
+  sandboxed: false
+
+validation:
+  strict: true
+  schemas:
+    - .openclaw/validation/agent.validator.ts
+    - .openclaw/validation/workflow.validator.ts
+  
+  rules:
+    - no_empty_strings
+    - no_undefined_values
+    - validate_tenant_ids
+
+logging:
+  level: info
+  format: json
+  pretty: true
+  outputs:
+    - console
+    - file: .openclaw/logs/app.log
+    - file: .openclaw/logs/error.log
+      level: error
+  
+  fields:
+    - timestamp
+    - level
+    - service
+    - component
+    - trace_id
+
+storage:
+  vector:
+    type: weaviate
+    url: http://localhost:8080
+    batch_size: 100
+  
+  database:
+    type: sqlserver
+    url: "sqlserver://localhost:1433;database=matjenin_ai;user=sa;password=YourStrong!Password123;trustServerCertificate=true"
+    pool_size: 10
+  
+  cache:
+    type: redis
+    url: redis://localhost:6379
+    ttl: 3600
+
+api:
+  routes:
+    - path: /api/openclaw
+      methods: [GET, POST, DELETE]
+      auth: required
+    
+    - path: /api/openclaw/status
+      methods: [GET]
+      auth: optional
+    
+    - path: /api/openclaw/agents
+      methods: [GET]
+      auth: required
+    
+    - path: /api/openclaw/workflows
+      methods: [GET]
+      auth: required
+  
+  cors:
+    enabled: true
+    origins:
+      - http://localhost:3000
+      - https://*.matjenin.com
+  
+  rate_limits:
+    - path: /api/openclaw/*
+      requests_per_minute: 60
+
+testing:
+  enabled: true
+  fixtures_path: .openclaw/tests/fixtures
+  coverage_threshold: 80
+  
+  suites:
+    - name: unit
+      path: .openclaw/tests/unit
+    
+    - name: integration
+      path: .openclaw/tests/integration
+    
+    - name: e2e
+      path: .openclaw/tests/e2e
+
+deployment:
+  environments:
+    - name: development
+      config: .openclaw/config/default.json
+      variables:
+        LOG_LEVEL: debug
+        WORKER_CONCURRENCY: 5
+    
+    - name: staging
+      config: .openclaw/config/staging.json
+      variables:
+        LOG_LEVEL: info
+        WORKER_CONCURRENCY: 10
+    
+    - name: production
+      config: .openclaw/config/production.json
+      variables:
+        LOG_LEVEL: warn
+        WORKER_CONCURRENCY: 20
+
+integrations:
+  weaviate:
+    enabled: true
+    schema:
+      - class: Document
+        properties:
+          - name: text
+            dataType: text
+          - name: metadata
+            dataType: object
+          - name: embedding
+            dataType: number[]
+    
+  prisma:
+    enabled: true
+    schema_path: prisma/schema.prisma
+  
+  bullmq:
+    enabled: true
+    dashboard: /admin/queues

@@ -1,0 +1,34 @@
+{
+  "webhooks": [
+    {
+      "id": "github-commit",
+      "name": "GitHub Commit Webhook",
+      "url": "/api/webhooks/github",
+      "events": ["push", "pull_request"],
+      "secret": "your-webhook-secret",
+      "active": true
+    },
+    {
+      "id": "slack-notify",
+      "name": "Slack Notification Webhook",
+      "url": "/api/webhooks/slack",
+      "events": ["alert", "workflow_completed"],
+      "config": {
+        "channel": "#openclaw-alerts",
+        "webhook_url": "https://hooks.slack.com/services/..."
+      },
+      "active": true
+    },
+    {
+      "id": "telegram-bot",
+      "name": "Telegram Bot Webhook",
+      "url": "/api/webhooks/telegram",
+      "events": ["status", "error"],
+      "config": {
+        "chat_id": "123456789",
+        "bot_token": "your-bot-token"
+      },
+      "active": false
+    }
+  ]
+}

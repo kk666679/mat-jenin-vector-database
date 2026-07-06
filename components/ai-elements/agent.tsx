@@ -97,6 +97,11 @@ export const AgentTool = memo(
         ? tool.jsonSchema
         : tool.inputSchema;
 
+    const description =
+      (tool.description as unknown as ((ctx: { context: object }) => string) | string | undefined) instanceof Function
+        ? (tool.description as unknown as (ctx: { context: object }) => string)({ context: {} })
+        : (tool.description as string | undefined) ?? "No description";
+
     return (
       <AccordionItem
         className={cn("border-b last:border-b-0", className)}
@@ -104,7 +109,7 @@ export const AgentTool = memo(
         {...props}
       >
         <AccordionTrigger className="px-3 py-2 text-sm hover:no-underline">
-          {tool.description ?? "No description"}
+          {description}
         </AccordionTrigger>
         <AccordionContent className="px-3 pb-3">
           <div className="rounded-md bg-muted/50">

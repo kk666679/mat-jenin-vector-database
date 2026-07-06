@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "environment": "development",
+  "agentSystem": {
+    "maxConcurrentTasks": 10,
+    "taskTimeout": 30000,
+    "enableParallelExecution": true,
+    "retryOnFailure": true,
+    "maxRetries": 3,
+    "backoffDelay": 1000
+  },
+  "queue": {
+    "concurrency": 10,
+    "maxAttempts": 3,
+    "removeOnComplete": 100,
+    "removeOnFail": 100,
+    "stalledInterval": 30000,
+    "maxStalledCount": 3
+  },
+  "ml": {
+    "embeddingModel": "Xenova/all-MiniLM-L6-v2",
+    "textGenerationModel": "Xenova/gpt2",
+    "summarizationModel": "Xenova/distilbart-cnn-6-6",
+    "qaModel": "Xenova/distilbert-base-uncased-distilled-squad",
+    "batchSize": 32,
+    "cacheEnabled": true,
+    "cacheTTL": 3600
+  },
+  "monitoring": {
+    "enabled": true,
+    "metricsInterval": 60000,
+    "alertThresholds": {
+      "errorRate": 0.1,
+      "queueLength": 1000,
+      "responseTime": 5000
+    }
+  },
+  "logging": {
+    "level": "info",
+    "pretty": true,
+    "timestampFormat": "ISO",
+    "includeMetadata": true
+  },
+  "security": {
+    "encryptionKey": "",
+    "enableAudit": true,
+    "maxTokenSize": 4096
+  }
+}

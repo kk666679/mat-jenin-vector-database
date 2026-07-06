@@ -10,8 +10,11 @@ import { streamTextAI, getDefaultProvider } from '@/sdk/llm/ai-sdk';
 // Explicitly declare runtime as Node.js (required for Pinecone and LLM SDK)
 export const runtime = 'nodejs';
 
-// Get prisma client instance
-const prisma = getPrismaClient();
+// IMPORTANT:
+// Do NOT construct Prisma at module-evaluation time.
+// Next.js “collect page data” / build can evaluate route modules and crash if
+// PRISMA_DATABASE_URL (or DATABASE_URL) is not configured.
+
 
 /**
  * POST /api/query/stream
@@ -35,8 +38,24 @@ export async function POST(request: NextRequest) {
     // Generate embedding for the query
     await generateEmbedding(query);
     const pineconeClient = createPineconeClient();
-    
+
+    // Construct Prisma lazily (inside handler) to avoid build-time crashes.
+    const dbUrl =
+      process.env.PRISMA_DATABASE_URL || process.env.DATABASE_URL;
+    if (!dbUrl) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Database is not configured: set PRISMA_DATABASE_URL (or DATABASE_URL).',
+        },
+        { status: 500 }
+      );
+    }
+
+    const prisma = getPrismaClient();
+
     let searchResults: any[] = [];
+
     
     // Try Pinecone first, fall back to database
     try {

@@ -1,0 +1,75 @@
+# OpenClaw Main Configuration
+version: "1.0.0"
+project: matjenin
+
+agent_system:
+  name: "Matjenin Agent System"
+  description: "Multi-agent system for document processing and RAG"
+  
+  agents:
+    - type: embedding
+      enabled: true
+      config:
+        models:
+          - Xenova/all-MiniLM-L6-v2
+        batch_size: 32
+    
+    - type: rag
+      enabled: true
+      config:
+        top_k: 10
+        rerank: true
+        hybrid_search: true
+    
+    - type: document_processor
+      enabled: true
+      config:
+        chunk_size: 512
+        overlap: 50
+    
+    - type: orchestrator
+      enabled: true
+      config:
+        max_concurrent_tasks: 10
+        enable_parallel: true
+
+workflows:
+  enabled: true
+  auto_discover: true
+  path: .openclaw/workflows/definitions
+
+queue:
+  type: bullmq
+  connection: redis://localhost:6379
+  concurrency: 10
+
+storage:
+  vector: weaviate
+  cache: redis
+  database: prisma
+
+api:
+  port: 3000
+  prefix: /api/openclaw
+  authentication: jwt
+
+logging:
+  level: info
+  format: pretty
+  outputs:
+    - console
+    - file
+
+monitoring:
+  enabled: true
+  interval: 60s
+  metrics:
+    - tasks_processed
+    - tasks_failed
+    - queue_length
+    - agent_latency
+
+health_check:
+  enabled: true
+  path: /api/openclaw/health
+  interval: 30s

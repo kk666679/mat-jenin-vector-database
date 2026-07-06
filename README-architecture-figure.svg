@@ -1,0 +1,442 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1180" width="100%" height="100%" style="background-color: #f8fafc; font-family: 'Segoe UI', -apple-system, sans-serif;">
+                <defs>
+                    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+                        <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.12" />
+                    </filter>
+                    <filter id="shadow-light" x="-5%" y="-5%" width="110%" height="110%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#0f172a" flood-opacity="0.06" />
+                    </filter>
+
+                    <marker id="arrow-request" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" />
+                    </marker>
+                    <marker id="arrow-control" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b" />
+                    </marker>
+                    <marker id="arrow-event" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" />
+                    </marker>
+                    <marker id="arrow-cross" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+                    </marker>
+
+                    <linearGradient id="grad-clients" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#4facfe" />
+                        <stop offset="100%" stop-color="#00f2fe" />
+                    </linearGradient>
+                    <linearGradient id="grad-transport" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#43e97b" />
+                        <stop offset="100%" stop-color="#38f9d7" />
+                    </linearGradient>
+                    <linearGradient id="grad-governance" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#f6d365" />
+                        <stop offset="100%" stop-color="#fda085" />
+                    </linearGradient>
+                    <linearGradient id="grad-orchestration" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#a18cd1" />
+                        <stop offset="100%" stop-color="#fbc2eb" />
+                    </linearGradient>
+                    <linearGradient id="grad-agents" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#48c6ef" />
+                        <stop offset="100%" stop-color="#6f86d6" />
+                    </linearGradient>
+                    <linearGradient id="grad-capabilities" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#fccb90" />
+                        <stop offset="100%" stop-color="#d57eeb" />
+                    </linearGradient>
+                    <linearGradient id="grad-data" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#ff9a9e" />
+                        <stop offset="100%" stop-color="#fecfef" />
+                    </linearGradient>
+                    <linearGradient id="grad-infra" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#cfd9df" />
+                        <stop offset="100%" stop-color="#e2ebf0" />
+                    </linearGradient>
+                </defs>
+
+                <!-- Title -->
+                <text x="700" y="40" font-size="28" font-weight="800" fill="#1e293b" text-anchor="middle" letter-spacing="1">OpenClaw Multi-Agent Architecture</text>
+                <text x="700" y="60" font-size="14" fill="#64748b" text-anchor="middle">A modular, scalable, and observable multi-agent system</text>
+
+                <!-- Cross-Cutting Services (Vertical Sidebar) -->
+                <g id="cross-cutting" transform="translate(1160, 80)">
+                    <rect x="0" y="0" width="200" height="1020" rx="12" fill="#1e293b" filter="url(#shadow)" />
+                    <text x="100" y="30" font-size="18" font-weight="bold" fill="#ffffff" text-anchor="middle">Cross-Cutting</text>
+                    <text x="100" y="50" font-size="14" font-weight="bold" fill="#94a3b8" text-anchor="middle">SERVICES</text>
+                    <line x1="20" y1="65" x2="180" y2="65" stroke="#334155" stroke-width="2" />
+
+                    <g font-size="12" fill="#cbd5e1">
+                        <rect x="15" y="80" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="99" text-anchor="middle">Monitoring &amp; Alerts</text>
+
+                        <rect x="15" y="120" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="139" text-anchor="middle">Metrics Collector</text>
+
+                        <rect x="15" y="160" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="179" text-anchor="middle">Logging &amp; Tracing</text>
+
+                        <rect x="15" y="200" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="219" text-anchor="middle">Audit &amp; Compliance</text>
+
+                        <rect x="15" y="240" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="259" text-anchor="middle">Rate Limiting</text>
+
+                        <rect x="15" y="280" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="299" text-anchor="middle">Auth &amp; Authorization</text>
+
+                        <rect x="15" y="320" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="339" text-anchor="middle">External Integrations</text>
+
+                        <rect x="15" y="360" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="379" text-anchor="middle">Webhooks</text>
+
+                        <rect x="15" y="400" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="419" text-anchor="middle">Third-party APIs</text>
+
+                        <rect x="15" y="440" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="459" text-anchor="middle">Email / Notifications</text>
+
+                        <rect x="15" y="480" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="499" text-anchor="middle">Cloud Services</text>
+
+                        <rect x="15" y="520" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="539" text-anchor="middle">CI/CD &amp; DevOps</text>
+
+                        <rect x="15" y="560" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="579" text-anchor="middle">Queues &amp; Workers</text>
+
+                        <rect x="15" y="600" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="619" text-anchor="middle">BullMQ Queues</text>
+
+                        <rect x="15" y="640" width="170" height="30" rx="6" fill="#0f172a" />
+                        <text x="100" y="659" text-anchor="middle">Worker Pool</text>
+                    </g>
+                </g>
+
+                <!-- Layer 1: Clients & Interfaces -->
+                <g id="layer-clients" transform="translate(40, 80)">
+                    <rect x="0" y="0" width="1100" height="90" rx="8" fill="#ffffff" fill-opacity="0.8" filter="url(#shadow-light)" />
+                    <text x="15" y="20" font-size="12" font-weight="bold" fill="#64748b">CLIENTS &amp; INTERFACES</text>
+
+                    <g transform="translate(40, 15)">
+                        <rect x="0" y="0" width="220" height="60" rx="8" fill="url(#grad-clients)" filter="url(#shadow)" />
+                        <text x="110" y="25" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">Web UI</text>
+                        <text x="110" y="45" font-size="12" fill="#fff" text-anchor="middle" opacity="0.9">Next.js</text>
+                    </g>
+                    <g transform="translate(290, 15)">
+                        <rect x="0" y="0" width="220" height="60" rx="8" fill="url(#grad-clients)" filter="url(#shadow)" />
+                        <text x="110" y="25" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">Mobile App</text>
+                        <text x="110" y="45" font-size="12" fill="#fff" text-anchor="middle" opacity="0.9">React Native</text>
+                    </g>
+                    <g transform="translate(540, 15)">
+                        <rect x="0" y="0" width="220" height="60" rx="8" fill="url(#grad-clients)" filter="url(#shadow)" />
+                        <text x="110" y="25" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">API Clients</text>
+                        <text x="110" y="45" font-size="12" fill="#fff" text-anchor="middle" opacity="0.9">SDKs / Libraries</text>
+                    </g>
+                    <g transform="translate(790, 15)">
+                        <rect x="0" y="0" width="220" height="60" rx="8" fill="url(#grad-clients)" filter="url(#shadow)" />
+                        <text x="110" y="25" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">3rd-party Integrations</text>
+                        <text x="110" y="45" font-size="12" fill="#fff" text-anchor="middle" opacity="0.9">Extensions / Plugins</text>
+                    </g>
+                </g>
+
+                <!-- Layer 2: Transports / Gateways -->
+                <g id="layer-transports" transform="translate(40, 190)">
+                    <rect x="0" y="0" width="1100" height="90" rx="8" fill="#ffffff" fill-opacity="0.8" filter="url(#shadow-light)" />
+                    <text x="15" y="20" font-size="12" font-weight="bold" fill="#64748b">TRANSPORTS &amp; GATEWAYS</text>
+
+                    <g transform="translate(35, 15)">
+                        <rect x="0" y="0" width="230" height="60" rx="8" fill="url(#grad-transport)" filter="url(#shadow)" />
+                        <text x="115" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">tRPC</text>
+                        <text x="115" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">/api/trpc</text>
+                    </g>
+                    <g transform="translate(285, 15)">
+                        <rect x="0" y="0" width="230" height="60" rx="8" fill="url(#grad-transport)" filter="url(#shadow)" />
+                        <text x="115" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">gRPC</text>
+                        <text x="115" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">:50051</text>
+                    </g>
+                    <g transform="translate(535, 15)">
+                        <rect x="0" y="0" width="230" height="60" rx="8" fill="url(#grad-transport)" filter="url(#shadow)" />
+                        <text x="115" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">REST</text>
+                        <text x="115" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">REST API</text>
+                    </g>
+                    <g transform="translate(785, 15)">
+                        <rect x="0" y="0" width="230" height="60" rx="8" fill="url(#grad-transport)" filter="url(#shadow)" />
+                        <text x="115" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">WebSocket</text>
+                        <text x="115" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">WebSocket</text>
+                    </g>
+                </g>
+
+                <!-- Layer 3: Governance & Control Plane -->
+                <g id="layer-governance" transform="translate(40, 300)">
+                    <rect x="0" y="0" width="1100" height="160" rx="8" fill="#fff7ed" filter="url(#shadow-light)" stroke="#fcd34d" stroke-width="2" />
+                    <text x="15" y="25" font-size="12" font-weight="bold" fill="#b45309">GOVERNANCE &amp; CONTROL PLANE</text>
+
+                    <g transform="translate(55, 45)">
+                        <rect x="0" y="0" width="190" height="80" rx="8" fill="url(#grad-governance)" filter="url(#shadow)" />
+                        <text x="95" y="35" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Agent Registry</text>
+                        <text x="95" y="55" font-size="11" fill="#1e293b" text-anchor="middle" opacity="0.8">Discover &amp; Manage</text>
+                    </g>
+                    <g transform="translate(305, 45)">
+                        <rect x="0" y="0" width="190" height="80" rx="8" fill="url(#grad-governance)" filter="url(#shadow)" />
+                        <text x="95" y="35" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Skill Registry</text>
+                        <text x="95" y="55" font-size="11" fill="#1e293b" text-anchor="middle" opacity="0.8">Capabilities Catalog</text>
+                    </g>
+                    <g transform="translate(555, 45)">
+                        <rect x="0" y="0" width="190" height="80" rx="8" fill="url(#grad-governance)" filter="url(#shadow)" />
+                        <text x="95" y="35" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Workflow Registry</text>
+                        <text x="95" y="55" font-size="11" fill="#1e293b" text-anchor="middle" opacity="0.8">Templates &amp; Definitions</text>
+                    </g>
+                    <g transform="translate(805, 45)">
+                        <rect x="0" y="0" width="190" height="80" rx="8" fill="url(#grad-governance)" filter="url(#shadow)" />
+                        <text x="95" y="35" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Policy Engine</text>
+                        <text x="95" y="55" font-size="11" fill="#1e293b" text-anchor="middle" opacity="0.8">Rules &amp; Constraints</text>
+                    </g>
+                </g>
+
+                <!-- Layer 4: Orchestration Layer -->
+                <g id="layer-orchestration" transform="translate(40, 480)">
+                    <rect x="0" y="0" width="1100" height="90" rx="8" fill="#ffffff" fill-opacity="0.8" filter="url(#shadow-light)" />
+                    <text x="15" y="20" font-size="12" font-weight="bold" fill="#64748b">ORCHESTRATION LAYER</text>
+
+                    <g transform="translate(35, 15)">
+                        <rect x="0" y="0" width="230" height="60" rx="8" fill="url(#grad-orchestration)" filter="url(#shadow)" />
+                        <text x="115" y="25" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">Orchestrator Agent</text>
+                        <text x="115" y="45" font-size="12" fill="#fff" text-anchor="middle" opacity="0.9">Workflow Coordinator</text>
+                    </g>
+                    <g transform="translate(285, 15)">
+                        <rect x="0" y="0" width="230" height="60" rx="8" fill="url(#grad-orchestration)" filter="url(#shadow)" />
+                        <text x="115" y="25" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">Planner Agent</text>
+                        <text x="115" y="45" font-size="12" fill="#fff" text-anchor="middle" opacity="0.9">Plan &amp; Decompose</text>
+                    </g>
+                    <g transform="translate(535, 15)">
+                        <rect x="0" y="0" width="230" height="60" rx="8" fill="url(#grad-orchestration)" filter="url(#shadow)" />
+                        <text x="115" y="25" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">Evaluator Agent</text>
+                        <text x="115" y="45" font-size="12" fill="#fff" text-anchor="middle" opacity="0.9">Validate &amp; Score</text>
+                    </g>
+                    <g transform="translate(785, 15)">
+                        <rect x="0" y="0" width="230" height="60" rx="8" fill="url(#grad-orchestration)" filter="url(#shadow)" />
+                        <text x="115" y="25" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">Task Dispatcher</text>
+                        <text x="115" y="45" font-size="12" fill="#fff" text-anchor="middle" opacity="0.9">Execution Queue</text>
+                    </g>
+                </g>
+
+                <!-- Layer 5: Agent Team -->
+                <g id="layer-agents" transform="translate(40, 590)">
+                    <rect x="0" y="0" width="1100" height="90" rx="8" fill="#ffffff" fill-opacity="0.8" filter="url(#shadow-light)" />
+                    <text x="15" y="20" font-size="12" font-weight="bold" fill="#64748b">AGENT TEAM (SPECIALIZED AGENTS)</text>
+
+                    <g transform="translate(65, 15)">
+                        <rect x="0" y="0" width="170" height="60" rx="8" fill="url(#grad-agents)" filter="url(#shadow)" />
+                        <text x="85" y="25" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">Document Processor</text>
+                        <text x="85" y="45" font-size="10" fill="#fff" text-anchor="middle" opacity="0.9">Extract &amp; Parse</text>
+                    </g>
+                    <g transform="translate(235, 15)">
+                        <rect x="0" y="0" width="170" height="60" rx="8" fill="url(#grad-agents)" filter="url(#shadow)" />
+                        <text x="85" y="25" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">Embedding Agent</text>
+                        <text x="85" y="45" font-size="10" fill="#fff" text-anchor="middle" opacity="0.9">Embed &amp; Index</text>
+                    </g>
+                    <g transform="translate(405, 15)">
+                        <rect x="0" y="0" width="170" height="60" rx="8" fill="url(#grad-agents)" filter="url(#shadow)" />
+                        <text x="85" y="25" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">Search Agent</text>
+                        <text x="85" y="45" font-size="10" fill="#fff" text-anchor="middle" opacity="0.9">Hybrid Search</text>
+                    </g>
+                    <g transform="translate(575, 15)">
+                        <rect x="0" y="0" width="170" height="60" rx="8" fill="url(#grad-agents)" filter="url(#shadow)" />
+                        <text x="85" y="25" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">Storage Agent</text>
+                        <text x="85" y="45" font-size="10" fill="#fff" text-anchor="middle" opacity="0.9">Manage Files</text>
+                    </g>
+                    <g transform="translate(745, 15)">
+                        <rect x="0" y="0" width="170" height="60" rx="8" fill="url(#grad-agents)" filter="url(#shadow)" />
+                        <text x="85" y="25" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">Monitoring Agent</text>
+                        <text x="85" y="45" font-size="10" fill="#fff" text-anchor="middle" opacity="0.9">Alerts &amp; Metrics</text>
+                    </g>
+                    <g transform="translate(915, 15)">
+                        <rect x="0" y="0" width="170" height="60" rx="8" fill="url(#grad-agents)" filter="url(#shadow)" stroke-dasharray="3,3" stroke="#fff" stroke-width="1.5" />
+                        <text x="85" y="25" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">Custom Agents</text>
+                        <text x="85" y="45" font-size="10" fill="#fff" text-anchor="middle" opacity="0.9">Extensible</text>
+                    </g>
+                </g>
+
+                <!-- Layer 6: Shared Capabilities Layer -->
+                <g id="layer-capabilities" transform="translate(40, 700)">
+                    <rect x="0" y="0" width="1100" height="90" rx="8" fill="#ffffff" fill-opacity="0.8" filter="url(#shadow-light)" />
+                    <text x="15" y="20" font-size="12" font-weight="bold" fill="#64748b">SHARED CAPABILITIES LAYER</text>
+
+                    <g transform="translate(35, 15)">
+                        <rect x="0" y="0" width="230" height="60" rx="8" fill="url(#grad-capabilities)" filter="url(#shadow)" />
+                        <text x="115" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Tool Executor</text>
+                        <text x="115" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">Function Calling</text>
+                    </g>
+                    <g transform="translate(285, 15)">
+                        <rect x="0" y="0" width="230" height="60" rx="8" fill="url(#grad-capabilities)" filter="url(#shadow)" />
+                        <text x="115" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Prompt Manager</text>
+                        <text x="115" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">Templates &amp; Versioning</text>
+                    </g>
+                    <g transform="translate(535, 15)">
+                        <rect x="0" y="0" width="230" height="60" rx="8" fill="url(#grad-capabilities)" filter="url(#shadow)" />
+                        <text x="115" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Context Manager</text>
+                        <text x="115" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">Window, History, Compression</text>
+                    </g>
+                    <g transform="translate(785, 15)">
+                        <rect x="0" y="0" width="230" height="60" rx="8" fill="url(#grad-capabilities)" filter="url(#shadow)" />
+                        <text x="115" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Workflow Engine</text>
+                        <text x="115" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">State, Transitions, Retries</text>
+                    </g>
+                </g>
+
+                <!-- Layer 7: Data & Knowledge Layer -->
+                <g id="layer-data" transform="translate(40, 810)">
+                    <rect x="0" y="0" width="1100" height="90" rx="8" fill="#ffffff" fill-opacity="0.8" filter="url(#shadow-light)" />
+                    <text x="15" y="20" font-size="12" font-weight="bold" fill="#64748b">DATA &amp; KNOWLEDGE LAYER</text>
+
+                    <g transform="translate(55, 15)">
+                        <rect x="0" y="0" width="190" height="60" rx="8" fill="url(#grad-data)" filter="url(#shadow)" />
+                        <text x="95" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">SQL Database</text>
+                        <text x="95" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">SQL Server</text>
+                    </g>
+                    <g transform="translate(255, 15)">
+                        <rect x="0" y="0" width="190" height="60" rx="8" fill="url(#grad-data)" filter="url(#shadow)" />
+                        <text x="95" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Vector Stores</text>
+                        <text x="95" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">Weaviate / Pinecone</text>
+                    </g>
+                    <g transform="translate(455, 15)">
+                        <rect x="0" y="0" width="190" height="60" rx="8" fill="url(#grad-data)" filter="url(#shadow)" />
+                        <text x="95" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Object Storage</text>
+                        <text x="95" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">S3 / MinIO / Azure</text>
+                    </g>
+                    <g transform="translate(655, 15)">
+                        <rect x="0" y="0" width="190" height="60" rx="8" fill="url(#grad-data)" filter="url(#shadow)" />
+                        <text x="95" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Cache / Queue</text>
+                        <text x="95" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">Redis</text>
+                    </g>
+                    <g transform="translate(855, 15)">
+                        <rect x="0" y="0" width="190" height="60" rx="8" fill="url(#grad-data)" filter="url(#shadow)" />
+                        <text x="95" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Graph / Knowledge</text>
+                        <text x="95" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">Neo4j / ArangoDB</text>
+                    </g>
+                </g>
+
+                <!-- Layer 8: Infrastructure & Operations -->
+                <g id="layer-infra" transform="translate(40, 920)">
+                    <rect x="0" y="0" width="1100" height="90" rx="8" fill="#ffffff" fill-opacity="0.8" filter="url(#shadow-light)" />
+                    <text x="15" y="20" font-size="12" font-weight="bold" fill="#64748b">INFRASTRUCTURE &amp; OPERATIONS</text>
+
+                    <g transform="translate(55, 15)">
+                        <rect x="0" y="0" width="190" height="60" rx="8" fill="url(#grad-infra)" filter="url(#shadow)" />
+                        <text x="95" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Environment</text>
+                        <text x="95" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">Dev / Staging / Prod</text>
+                    </g>
+                    <g transform="translate(255, 15)">
+                        <rect x="0" y="0" width="190" height="60" rx="8" fill="url(#grad-infra)" filter="url(#shadow)" />
+                        <text x="95" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Secret Management</text>
+                        <text x="95" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">Vault / KMS</text>
+                    </g>
+                    <g transform="translate(455, 15)">
+                        <rect x="0" y="0" width="190" height="60" rx="8" fill="url(#grad-infra)" filter="url(#shadow)" />
+                        <text x="95" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Backups &amp; DR</text>
+                        <text x="95" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">Disaster Recovery</text>
+                    </g>
+                    <g transform="translate(655, 15)">
+                        <rect x="0" y="0" width="190" height="60" rx="8" fill="url(#grad-infra)" filter="url(#shadow)" />
+                        <text x="95" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">Observability Stack</text>
+                        <text x="95" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">Prometheus, Grafana, Loki</text>
+                    </g>
+                    <g transform="translate(855, 15)">
+                        <rect x="0" y="0" width="190" height="60" rx="8" fill="url(#grad-infra)" filter="url(#shadow)" stroke-dasharray="3,3" stroke="#94a3b8" stroke-width="1.5" />
+                        <text x="95" y="25" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">CI/CD &amp; DevOps</text>
+                        <text x="95" y="45" font-size="12" fill="#1e293b" text-anchor="middle" opacity="0.8">Automation</text>
+                    </g>
+                </g>
+
+                <!-- Edges -->
+                <g id="edges">
+                    <!-- Layer 1 → Layer 2 -->
+                    <path d="M 150 170 L 150 190" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 400 170 L 400 190" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 650 170 L 650 190" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 900 170 L 900 190" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+
+                    <!-- Layer 2 → Layer 4 (bypass) -->
+                    <path d="M 150 280 L 150 480" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 400 280 L 400 480" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 650 280 L 650 480" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 900 280 L 900 480" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+
+                    <!-- Layer 2 → Layer 3 (Control) -->
+                    <path d="M 150 280 L 150 300" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow-control)" />
+                    <path d="M 400 280 L 400 300" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow-control)" />
+                    <path d="M 650 280 L 650 300" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow-control)" />
+                    <path d="M 900 280 L 900 300" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow-control)" />
+
+                    <!-- Layer 3 → Layer 4 (Control) -->
+                    <path d="M 150 460 L 150 480" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow-control)" />
+                    <path d="M 400 460 L 400 480" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow-control)" />
+                    <path d="M 650 460 L 650 480" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow-control)" />
+                    <path d="M 900 460 L 900 480" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow-control)" />
+
+                    <!-- Layer 4 → Layer 5 (Events) -->
+                    <path d="M 150 570 L 150 590" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="2,6" marker-end="url(#arrow-event)" />
+                    <path d="M 400 570 L 400 590" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="2,6" marker-end="url(#arrow-event)" />
+                    <path d="M 650 570 L 650 590" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="2,6" marker-end="url(#arrow-event)" />
+                    <path d="M 900 570 L 900 590" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="2,6" marker-end="url(#arrow-event)" />
+
+                    <!-- Layer 5 → Layer 6 -->
+                    <path d="M 150 680 L 150 700" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 320 680 L 320 700" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 490 680 L 490 700" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 660 680 L 660 700" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 830 680 L 830 700" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 1000 680 L 1000 700" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+
+                    <!-- Layer 6 → Layer 7 -->
+                    <path d="M 150 790 L 150 810" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 400 790 L 400 810" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 650 790 L 650 810" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 900 790 L 900 810" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+
+                    <!-- Layer 7 → Layer 8 -->
+                    <path d="M 150 900 L 150 920" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 350 900 L 350 920" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 550 900 L 550 920" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 750 900 L 750 920" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <path d="M 950 900 L 950 920" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+
+                    <!-- Cross-Cutting -->
+                    <path d="M 1140 125 L 1160 125" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <path d="M 1140 235 L 1160 235" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <path d="M 1140 380 L 1160 380" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <path d="M 1140 525 L 1160 525" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <path d="M 1140 635 L 1160 635" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <path d="M 1140 745 L 1160 745" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <path d="M 1140 855 L 1160 855" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <path d="M 1140 965 L 1160 965" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+
+                    <path d="M 1160 140 L 1140 140" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <path d="M 1160 250 L 1140 250" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <path d="M 1160 395 L 1140 395" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <path d="M 1160 540 L 1140 540" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <path d="M 1160 650 L 1140 650" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <path d="M 1160 760 L 1140 760" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <path d="M 1160 870 L 1140 870" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <path d="M 1160 980 L 1140 980" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                </g>
+
+                <!-- Legend -->
+                <g id="legend" transform="translate(40, 1030)">
+                    <rect x="0" y="0" width="400" height="80" rx="8" fill="#ffffff" filter="url(#shadow)" />
+                    <text x="15" y="20" font-size="12" font-weight="bold" fill="#1e293b">FLOW LEGEND</text>
+
+                    <path d="M 15 40 L 60 40" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-request)" />
+                    <text x="70" y="44" font-size="12" fill="#475569">Request / Data Flow</text>
+
+                    <path d="M 155 40 L 200 40" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow-control)" />
+                    <text x="210" y="44" font-size="12" fill="#475569">Control / Feedback</text>
+
+                    <path d="M 15 65 L 60 65" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="2,6" marker-end="url(#arrow-event)" />
+                    <text x="70" y="69" font-size="12" fill="#475569">Events / Streams</text>
+
+                    <path d="M 155 65 L 200 65" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-cross)" />
+                    <text x="210" y="69" font-size="12" fill="#475569">Cross-Cutting (Bidirectional)</text>
+                </g>
+            </svg>

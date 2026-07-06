@@ -97,7 +97,8 @@ export function createTRPCClientWithUrl(baseUrl: string, headers?: Record<string
       httpBatchLinkProxy({
         url: `${baseUrl}/api/trpc`,
         transformer: superjson,
-        headers,
+        // Only include headers if they are provided
+        ...(headers ? { headers } : {}),
       }),
     ],
   });
@@ -122,4 +123,3 @@ export type RouterOutputs = AppRouter extends infer R
       }
     : never
   : never;
-
